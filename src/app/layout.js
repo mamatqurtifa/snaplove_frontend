@@ -6,22 +6,22 @@ import Footer from "@/components/Footer";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
-  title: "SnapLove - Custom Photo Frames & Photobooth",
-  description: "Create, share and use beautiful photo frames for your special moments",
+  title: "SnapLove - Create & Share Beautiful Photo Frames",
+  description: "SnapLove is a platform to create, share and use beautiful photo frames with loved ones",
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className="scroll-smooth">
       <head>
-        {/* Plus Jakarta Sans Font */}
+        {/* Nunito Font */}
         <link
-          href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap"
           rel="stylesheet"
         />
-        {/* Outfit Font for headings/highlights - more modern and cute */}
+        {/* Quicksand for headings */}
         <link
-          href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&display=swap"
           rel="stylesheet"
         />
       </head>
