@@ -3,6 +3,12 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  
+  /* SnapLove Brand Colors */
+  --snap-yellow: #FFE99A;
+  --snap-orange: #FFD586;
+  --snap-pink-light: #FFAAAA;
+  --snap-pink: #FF9898;
 }
 
 @theme inline {
@@ -10,6 +16,12 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  
+  /* SnapLove Brand Colors for Tailwind */
+  --color-snap-yellow: var(--snap-yellow);
+  --color-snap-orange: var(--snap-orange);
+  --color-snap-pink-light: var(--snap-pink-light);
+  --color-snap-pink: var(--snap-pink);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -24,3 +36,77 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Smooth scrolling for navigation */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Fade-in animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.6s ease-out;
+}
+
+/* Hover animations */
+.hover-lift {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Button hover effects */
+.btn-hover {
+  transition: all 0.3s ease;
+}
+
+.btn-hover:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Custom brand color utilities */
+.text-snap-yellow { color: var(--snap-yellow); }
+.text-snap-orange { color: var(--snap-orange); }
+.text-snap-pink-light { color: var(--snap-pink-light); }
+.text-snap-pink { color: var(--snap-pink); }
+
+.bg-snap-yellow { background-color: var(--snap-yellow); }
+.bg-snap-orange { background-color: var(--snap-orange); }
+.bg-snap-pink-light { background-color: var(--snap-pink-light); }
+.bg-snap-pink { background-color: var(--snap-pink); }
+
+.border-snap-yellow { border-color: var(--snap-yellow); }
+.border-snap-orange { border-color: var(--snap-orange); }
+.border-snap-pink-light { border-color: var(--snap-pink-light); }
+.border-snap-pink { border-color: var(--snap-pink); }
+
+/* Brand color opacity utilities */
+.bg-snap-yellow\/10 { background-color: rgba(255, 233, 154, 0.1); }
+.bg-snap-yellow\/20 { background-color: rgba(255, 233, 154, 0.2); }
+.bg-snap-yellow\/30 { background-color: rgba(255, 233, 154, 0.3); }
+
+.bg-snap-orange\/10 { background-color: rgba(255, 213, 134, 0.1); }
+.bg-snap-orange\/20 { background-color: rgba(255, 213, 134, 0.2); }
+.bg-snap-orange\/30 { background-color: rgba(255, 213, 134, 0.3); }
+
+.bg-snap-pink-light\/10 { background-color: rgba(255, 170, 170, 0.1); }
+.bg-snap-pink-light\/20 { background-color: rgba(255, 170, 170, 0.2); }
+.bg-snap-pink-light\/30 { background-color: rgba(255, 170, 170, 0.3); }
+
+.bg-snap-pink\/10 { background-color: rgba(255, 152, 152, 0.1); }
+.bg-snap-pink\/20 { background-color: rgba(255, 152, 152, 0.2); }
+.bg-snap-pink\/30 { background-color: rgba(255, 152, 152, 0.3); }
