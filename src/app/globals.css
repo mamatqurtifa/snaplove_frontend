@@ -3,13 +3,29 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  
+  /* SnapLove Brand Colors */
+  --brand-yellow: #FFE99A;
+  --brand-orange: #FFD586;
+  --brand-pink: #FFAAAA;
+  --brand-red: #FF9898;
+  --brand-white: #ffffff;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  
+  /* Brand Colors */
+  --color-brand-yellow: var(--brand-yellow);
+  --color-brand-orange: var(--brand-orange);
+  --color-brand-pink: var(--brand-pink);
+  --color-brand-red: var(--brand-red);
+  --color-brand-white: var(--brand-white);
+  
+  /* Font Families */
+  --font-jakarta: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-poppins: 'Poppins', system-ui, -apple-system, sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -22,5 +38,59 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-jakarta);
+}
+
+/* Custom utility classes */
+.font-jakarta {
+  font-family: var(--font-jakarta);
+}
+
+.font-poppins {
+  font-family: var(--font-poppins);
+}
+
+.text-brand-yellow {
+  color: var(--brand-yellow);
+}
+
+.text-brand-orange {
+  color: var(--brand-orange);
+}
+
+.text-brand-pink {
+  color: var(--brand-pink);
+}
+
+.text-brand-red {
+  color: var(--brand-red);
+}
+
+.bg-brand-yellow {
+  background-color: var(--brand-yellow);
+}
+
+.bg-brand-orange {
+  background-color: var(--brand-orange);
+}
+
+.bg-brand-pink {
+  background-color: var(--brand-pink);
+}
+
+.bg-brand-red {
+  background-color: var(--brand-red);
+}
+
+.bg-brand-white {
+  background-color: var(--brand-white);
+}
+
+/* Gradient backgrounds */
+.bg-brand-gradient {
+  background: linear-gradient(135deg, var(--brand-yellow) 0%, var(--brand-orange) 25%, var(--brand-pink) 75%, var(--brand-red) 100%);
+}
+
+.bg-brand-gradient-soft {
+  background: linear-gradient(135deg, var(--brand-yellow) 0%, var(--brand-orange) 100%);
 }
