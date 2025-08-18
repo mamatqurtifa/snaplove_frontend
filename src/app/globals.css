@@ -5,10 +5,13 @@
   --yellow: #FFD586;
   --pink-light: #FFAAAA;
   --pink: #FF9898;
+  --purple-light: #E2CFFF;
+  --purple: #C9A7FF;
+  --mint: #A8EECC;
+  --mint-light: #C7F9E3;
   --white: #FFFFFF;
 }
 
-/* Custom Animations */
 @keyframes float {
   0% { transform: translateY(0px); }
   50% { transform: translateY(-10px); }
@@ -26,50 +29,143 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
+}
+
+@keyframes heartbeat {
+  0% { transform: scale(1); }
+  25% { transform: scale(1.1); }
+  40% { transform: scale(1); }
+  60% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+@keyframes rotateIn {
+  from { transform: rotate(-10deg) scale(0.8); opacity: 0; }
+  to { transform: rotate(0) scale(1); opacity: 1; }
+}
+
+@keyframes wobble {
+  0%, 100% { transform: rotate(-3deg); }
+  50% { transform: rotate(3deg); }
+}
+
 body {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Nunito', 'Plus Jakarta Sans', sans-serif;
   color: #333;
-  background-color: #FFFCF9;
+  overflow-x: hidden;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Quicksand', 'Nunito', sans-serif;
+  font-weight: 700;
+}
+
+img {
+  transition: transform 0.5s ease, filter 0.3s ease;
+}
+
+img:hover {
+  transform: scale(1.05);
+  filter: brightness(1.05);
 }
 
 @layer components {
   .btn-primary {
-    @apply bg-[#FF9898] hover:bg-[#FFAAAA] text-white font-semibold py-3 px-8 rounded-full transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-1;
+    @apply bg-[#FF9898] hover:bg-[#FFAAAA] text-white font-semibold py-3 px-6 rounded-full transition-all duration-300 shadow-md hover:shadow-lg active:scale-95 hover:-translate-y-1;
   }
   
   .btn-secondary {
-    @apply bg-[#FFE99A] hover:bg-[#FFD586] text-gray-700 font-semibold py-3 px-8 rounded-full transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-1;
+    @apply bg-[#C9A7FF] hover:bg-[#E2CFFF] text-white font-semibold py-3 px-6 rounded-full transition-all duration-300 shadow-md hover:shadow-lg active:scale-95 hover:-translate-y-1;
+  }
+  
+  .btn-tertiary {
+    @apply bg-[#A8EECC] hover:bg-[#C7F9E3] text-gray-700 font-semibold py-3 px-6 rounded-full transition-all duration-300 shadow-md hover:shadow-lg active:scale-95 hover:-translate-y-1;
   }
   
   .btn-outline {
-    @apply bg-transparent border-2 border-[#FFD586] text-gray-700 hover:bg-[#FFE99A] font-semibold py-[10px] px-8 rounded-full transition-all duration-300 shadow-sm hover:shadow-md transform hover:-translate-y-1;
+    @apply border-2 border-[#C9A7FF] text-gray-700 hover:bg-[#E2CFFF] font-semibold py-3 px-6 rounded-full transition-all duration-300 active:scale-95 hover:-translate-y-1;
   }
   
   .nav-link {
-    @apply text-gray-700 hover:text-[#FF9898] font-medium transition-colors duration-300 relative after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 after:bg-[#FF9898] after:transition-all after:duration-300 hover:after:w-full;
+    @apply text-gray-700 hover:text-[#FF9898] font-medium transition-colors duration-300 relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-[#FF9898] after:transition-all hover:after:w-full;
   }
 
   .heading-highlight {
     @apply text-[#FF9898] font-bold;
   }
   
-  .card {
-    @apply bg-white p-6 rounded-3xl shadow-md hover:shadow-lg transition-all duration-300 border border-gray-100;
-  }
-  
   .floating {
-    @apply animate-[float_4s_ease-in-out_infinite];
+    @apply animate-[float_6s_ease-in-out_infinite];
   }
   
-  .pulse {
-    @apply animate-[pulse_2s_ease-in-out_infinite];
+  .pulsing {
+    @apply animate-[pulse_4s_ease-in-out_infinite];
   }
   
   .fade-in {
-    @apply animate-[fadeIn_0.5s_ease-out_forwards];
+    @apply animate-[fadeIn_0.6s_ease-out_forwards];
+  }
+  
+  .bouncing {
+    @apply animate-[bounce_4s_ease-in-out_infinite];
+  }
+  
+  .heartbeating {
+    @apply animate-[heartbeat_1.5s_ease-in-out_infinite];
+  }
+  
+  .rotating-in {
+    @apply animate-[rotateIn_0.8s_ease-out_forwards];
+  }
+  
+  .wobbling {
+    @apply animate-[wobble_6s_ease-in-out_infinite];
+  }
+  
+  .glass-effect {
+    @apply bg-white/70 backdrop-blur-md border border-white/20 shadow-lg rounded-3xl;
+  }
+  
+  .section-padding {
+    @apply py-16 md:py-24;
+  }
+  
+  .container-custom {
+    @apply container mx-auto px-6 md:px-12 lg:px-16 max-w-7xl;
+  }
+  
+  .img-card {
+    @apply rounded-3xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2;
+  }
+  
+  .frame-preview {
+    @apply bg-white p-4 rounded-3xl shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-2;
+  }
+  
+  .cute-icon {
+    @apply rounded-full p-3 transition-all duration-300 hover:scale-110;
+  }
+  
+  .bubble {
+    @apply rounded-full bg-white shadow-md p-3 transition-all duration-300 hover:scale-110 hover:shadow-lg;
+  }
+  
+  .tag {
+    @apply rounded-full px-4 py-1.5 text-sm font-medium transition-all duration-300 hover:scale-105;
+  }
+  
+  .frame-card {
+    @apply rounded-3xl overflow-hidden bg-white shadow-md hover:shadow-xl transition-all duration-300 p-4 hover:-translate-y-2;
+  }
+  
+  .photo-frame {
+    @apply relative rounded-3xl overflow-hidden;
+  }
+  
+  .category-pill {
+    @apply rounded-full px-4 py-1.5 text-sm font-medium transition-all;
   }
 }
