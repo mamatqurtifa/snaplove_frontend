@@ -2,11 +2,15 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { FiMenu, FiX, FiSearch, FiUser, FiHeart, FiBell } from "react-icons/fi";
+import { FiMenu, FiX, FiSearch, FiUser, FiHeart } from "react-icons/fi";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -18,18 +22,20 @@ const Navbar = () => {
     };
 
     window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
   }, []);
 
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
-
   return (
-    <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-      scrolled ? "bg-white/90 backdrop-blur-md shadow-md py-2" : "bg-transparent py-4"
-    }`}>
-      <div className="container-custom flex justify-between items-center">
+    <nav 
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        scrolled 
+          ? "bg-white/95 backdrop-blur-sm py-3 shadow-md" 
+          : "bg-transparent py-5"
+      }`}
+    >
+      <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-8 flex justify-between items-center">
         {/* Logo */}
         <Link href="/" className="flex items-center">
           <Image
@@ -43,10 +49,12 @@ const Navbar = () => {
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center space-x-8">
-          <Link href="/explore" className="nav-link">
+          <Link href="/explore" className="nav-link flex items-center gap-1">
+            <FiSearch className="text-lg" />
             Explore
           </Link>
-          <Link href="/leaderboard" className="nav-link">
+          <Link href="/leaderboard" className="nav-link flex items-center gap-1">
+            <FiHeart className="text-lg" />
             Leaderboard
           </Link>
           <Link href="/pricing" className="nav-link">
@@ -55,37 +63,23 @@ const Navbar = () => {
           <Link href="/help" className="nav-link">
             Help Center
           </Link>
-        </div>
-
-        {/* Desktop Right Icons */}
-        <div className="hidden md:flex items-center space-x-4">
-          <button className="p-2 rounded-full hover:bg-[#FFE99A] transition-colors">
-            <FiSearch className="h-5 w-5 text-gray-700" />
-          </button>
-          <button className="p-2 rounded-full hover:bg-[#FFE99A] transition-colors">
-            <FiBell className="h-5 w-5 text-gray-700" />
-          </button>
-          <button className="p-2 rounded-full hover:bg-[#FFE99A] transition-colors">
-            <FiHeart className="h-5 w-5 text-gray-700" />
-          </button>
           <button className="btn-primary flex items-center gap-2">
-            <FiUser className="h-5 w-5" /> Sign In
+            <FiUser className="text-lg" />
+            Sign In
           </button>
         </div>
 
         {/* Mobile Menu Button */}
-        <div className="md:hidden flex items-center gap-4">
-          <button className="p-2 rounded-full hover:bg-[#FFE99A] transition-colors">
-            <FiSearch className="h-5 w-5 text-gray-700" />
-          </button>
+        <div className="md:hidden">
           <button
             onClick={toggleMenu}
-            className="p-2 rounded-full hover:bg-[#FFE99A] transition-colors"
+            className="text-gray-700 hover:text-[#FF9898] focus:outline-none p-2 rounded-full bg-white/80 backdrop-blur-sm"
+            aria-label="Toggle menu"
           >
             {isMenuOpen ? (
-              <FiX className="h-5 w-5 text-gray-700" />
+              <FiX className="h-6 w-6" />
             ) : (
-              <FiMenu className="h-5 w-5 text-gray-700" />
+              <FiMenu className="h-6 w-6" />
             )}
           </button>
         </div>
@@ -93,53 +87,42 @@ const Navbar = () => {
 
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="md:hidden absolute top-full left-0 right-0 glass-effect py-6 px-6 z-40 border-t border-gray-100 fade-in">
+        <div className="md:hidden absolute top-full left-0 right-0 bg-white/95 backdrop-blur-sm shadow-lg py-6 px-6 fade-in">
           <div className="flex flex-col space-y-5">
             <Link
               href="/explore"
-              className="nav-link flex items-center gap-3 py-2"
+              className="nav-link flex items-center gap-2 text-lg py-2"
               onClick={() => setIsMenuOpen(false)}
             >
-              <span className="bg-[#FFE99A] p-2 rounded-full">
-                <FiSearch className="h-4 w-4" />
-              </span>
+              <FiSearch className="text-xl" />
               Explore
             </Link>
             <Link
               href="/leaderboard"
-              className="nav-link flex items-center gap-3 py-2"
+              className="nav-link flex items-center gap-2 text-lg py-2"
               onClick={() => setIsMenuOpen(false)}
             >
-              <span className="bg-[#FFD586] p-2 rounded-full">
-                <FiHeart className="h-4 w-4" />
-              </span>
+              <FiHeart className="text-xl" />
               Leaderboard
             </Link>
             <Link
               href="/pricing"
-              className="nav-link flex items-center gap-3 py-2"
+              className="nav-link text-lg py-2"
               onClick={() => setIsMenuOpen(false)}
             >
-              <span className="bg-[#FFAAAA] p-2 rounded-full">
-                <FiBell className="h-4 w-4" />
-              </span>
               Pricing
             </Link>
             <Link
               href="/help"
-              className="nav-link flex items-center gap-3 py-2"
+              className="nav-link text-lg py-2"
               onClick={() => setIsMenuOpen(false)}
             >
-              <span className="bg-[#FF9898] p-2 rounded-full text-white">
-                <FiUser className="h-4 w-4" />
-              </span>
               Help Center
             </Link>
-            <div className="pt-4 border-t border-gray-100">
-              <button className="btn-primary w-full flex items-center justify-center gap-2">
-                <FiUser className="h-5 w-5" /> Sign In
-              </button>
-            </div>
+            <button className="btn-primary flex items-center justify-center gap-2 mt-2 w-full">
+              <FiUser className="text-lg" />
+              Sign In
+            </button>
           </div>
         </div>
       )}

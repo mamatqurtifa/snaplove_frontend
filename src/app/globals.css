@@ -8,6 +8,7 @@
   --white: #FFFFFF;
 }
 
+/* Custom Animations */
 @keyframes float {
   0% { transform: translateY(0px); }
   50% { transform: translateY(-10px); }
@@ -28,54 +29,47 @@
 body {
   font-family: 'Plus Jakarta Sans', sans-serif;
   color: #333;
+  background-color: #FFFCF9;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Outfit', sans-serif;
 }
 
 @layer components {
   .btn-primary {
-    @apply bg-[#FF9898] hover:bg-[#FFAAAA] text-white font-semibold py-2 px-6 rounded-full transition-all duration-300 shadow-md hover:shadow-lg active:scale-95;
+    @apply bg-[#FF9898] hover:bg-[#FFAAAA] text-white font-semibold py-3 px-8 rounded-full transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-1;
   }
   
   .btn-secondary {
-    @apply bg-[#FFD586] hover:bg-[#FFE99A] text-gray-800 font-semibold py-2 px-6 rounded-full transition-all duration-300 shadow-md hover:shadow-lg active:scale-95;
+    @apply bg-[#FFE99A] hover:bg-[#FFD586] text-gray-700 font-semibold py-3 px-8 rounded-full transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-1;
   }
   
   .btn-outline {
-    @apply border-2 border-[#FFD586] text-gray-700 hover:bg-[#FFE99A] font-semibold py-2 px-6 rounded-full transition-all duration-300 active:scale-95;
+    @apply bg-transparent border-2 border-[#FFD586] text-gray-700 hover:bg-[#FFE99A] font-semibold py-[10px] px-8 rounded-full transition-all duration-300 shadow-sm hover:shadow-md transform hover:-translate-y-1;
   }
   
   .nav-link {
-    @apply text-gray-700 hover:text-[#FF9898] font-medium transition-colors duration-300 relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-[#FF9898] after:transition-all hover:after:w-full;
+    @apply text-gray-700 hover:text-[#FF9898] font-medium transition-colors duration-300 relative after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 after:bg-[#FF9898] after:transition-all after:duration-300 hover:after:w-full;
   }
 
   .heading-highlight {
     @apply text-[#FF9898] font-bold;
   }
   
-  .floating {
-    @apply animate-[float_6s_ease-in-out_infinite];
+  .card {
+    @apply bg-white p-6 rounded-3xl shadow-md hover:shadow-lg transition-all duration-300 border border-gray-100;
   }
   
-  .pulsing {
-    @apply animate-[pulse_4s_ease-in-out_infinite];
+  .floating {
+    @apply animate-[float_4s_ease-in-out_infinite];
+  }
+  
+  .pulse {
+    @apply animate-[pulse_2s_ease-in-out_infinite];
   }
   
   .fade-in {
-    @apply animate-[fadeIn_0.6s_ease-out_forwards];
-  }
-  
-  .glass-effect {
-    @apply bg-white/70 backdrop-blur-md border border-white/20 shadow-lg;
-  }
-  
-  .section-padding {
-    @apply py-16 md:py-24;
-  }
-  
-  .container-custom {
-    @apply container mx-auto px-6 md:px-12 lg:px-16;
+    @apply animate-[fadeIn_0.5s_ease-out_forwards];
   }
 }
