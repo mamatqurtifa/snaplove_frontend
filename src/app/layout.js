@@ -6,8 +6,8 @@ import Footer from "@/components/Footer";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
-  title: "SnapLove - Share Moments, Capture Love",
-  description: "SnapLove is a platform to share your special moments with loved ones",
+  title: "SnapLove - Custom Photo Frames & Photobooth",
+  description: "Create, share and use beautiful photo frames for your special moments",
 };
 
 export default function RootLayout({ children }) {
@@ -19,9 +19,9 @@ export default function RootLayout({ children }) {
           href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
           rel="stylesheet"
         />
-        {/* Playfair Display for headings/highlights */}
+        {/* Outfit Font for headings/highlights - more modern and cute */}
         <link
-          href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap"
           rel="stylesheet"
         />
       </head>
