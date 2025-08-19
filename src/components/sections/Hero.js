@@ -2,7 +2,7 @@
 import { useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { FiArrowRight, FiCamera, FiHeart, FiShare2, FiDownload } from "react-icons/fi";
+import { FiArrowRight, FiCamera } from "react-icons/fi";
 
 const Hero = () => {
   const heroRef = useRef(null);
@@ -32,57 +32,27 @@ const Hero = () => {
   const frames = [
     {
       id: 1,
-      title: "Birthday Celebration 🎂",
-      mainImage: "/images/frames/birthday-main.jpg",
-      overlayImage: "/images/frames/birthday-overlay.png",
+      title: "",
+      image: "/images/featured/featured-placeholder.png",
       rotation: "rotate-3",
       animation: "floating",
       delay: "delay-0"
     },
     {
       id: 2,
-      title: "Just Married 💍",
-      mainImage: "/images/frames/wedding-main.jpg",
-      overlayImage: "/images/frames/wedding-overlay.png",
+      title: "",
+      image: "/images/featured/featured-placeholder-2.png",
       rotation: "rotate-2",
       animation: "floating",
       delay: "delay-100"
     },
     {
       id: 3,
-      title: "Happy Holidays ☃️",
-      mainImage: "/images/frames/holiday-main.jpg",
-      overlayImage: "/images/frames/holiday-overlay.png",
+      title: "",
+      image: "/images/featured/featured-placeholder-3.png",
       rotation: "rotate-4",
       animation: "floating",
       delay: "delay-200"
-    },
-    {
-      id: 4,
-      title: "Congrats Grad! 🎓",
-      mainImage: "/images/frames/graduation-main.jpg",
-      overlayImage: "/images/frames/graduation-overlay.png",
-      rotation: "rotate-3",
-      animation: "floating",
-      delay: "delay-300"
-    },
-    {
-      id: 5,
-      title: "Summer Vibes 🏝️",
-      mainImage: "/images/frames/summer-main.jpg",
-      overlayImage: "/images/frames/summer-overlay.png",
-      rotation: "rotate-2",
-      animation: "floating",
-      delay: "delay-400"
-    },
-    {
-      id: 6,
-      title: "Baby Announcement 👶",
-      mainImage: "/images/frames/baby-main.jpg",
-      overlayImage: "/images/frames/baby-overlay.png",
-      rotation: "rotate-3",
-      animation: "floating",
-      delay: "delay-500"
     }
   ];
 
@@ -100,18 +70,18 @@ const Hero = () => {
         <div className="flex flex-col md:flex-row items-center">
           <div className="w-full md:w-1/2 mb-12 md:mb-0 opacity-0 translate-y-10 transition-all duration-1000 animate-on-scroll">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
-              Create & Share <span className="text-[#FF9898] relative">
-                Photo Frames
-                <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 100 15" preserveAspectRatio="none">
+              Enjoy the <span className="text-[#FF9898] relative z-10">
+                Photobooth Experience
+                <svg className="absolute bottom-1 left-0 w-full -z-10" viewBox="0 0 100 15" preserveAspectRatio="none">
                   <path 
                     d="M0,5 Q50,15 100,5 V15 H0 Z" 
-                    fill="#FFE99A" 
+                    fill="rgba(255, 233, 154, 0.3)" 
                   />
                 </svg>
-              </span> With Everyone
+              </span> Anywhere.
             </h1>
             <p className="text-lg md:text-xl text-gray-600 mb-8 max-w-xl">
-              SnapLove helps you create beautiful photo frames, share them with the community, and use frames created by others for your perfect photos.
+              Snaplove helps you capture beautiful photos with a photobooth experience, share them with the community, and use frames created by others for your perfect photos.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <button className="btn-primary flex items-center justify-center gap-2 group">
@@ -131,7 +101,7 @@ const Hero = () => {
                 {[1, 2, 3, 4].map((i) => (
                   <div key={i} className="w-10 h-10 rounded-full border-2 border-white overflow-hidden hover:scale-110 transition-transform z-10">
                     <Image 
-                      src={`/images/avatars/avatar-${i}.jpg`} 
+                      src={`/images/avatars/avatar-${i}.jpeg`} 
                       alt={`User ${i}`}
                       width={40} 
                       height={40} 
@@ -141,7 +111,7 @@ const Hero = () => {
                 ))}
               </div>
               <div className="ml-4">
-                <p className="font-semibold">Join 10k+ creators</p>
+                <p className="font-semibold">Join Our Top Creators!</p>
                 <div className="flex items-center text-yellow-500">
                   {[1, 2, 3, 4, 5].map((i) => (
                     <span key={i} className="text-lg">★</span>
@@ -158,44 +128,25 @@ const Hero = () => {
               <div className="absolute -bottom-10 -right-10 w-72 h-72 bg-[#C9A7FF] rounded-full opacity-20"></div>
               
               {/* Grid of frames */}
-              <div className="relative z-10 grid grid-cols-2 md:grid-cols-3 gap-4 max-w-lg mx-auto">
+              <div className="relative z-10 grid grid-cols-3 gap-2 sm:gap-3 max-w-sm sm:max-w-lg mx-auto">
                 {frames.map((frame) => (
                   <div 
                     key={frame.id} 
                     className={`${frame.rotation} ${frame.animation} ${frame.delay} transition-all duration-500 hover:-rotate-1 hover:scale-105 group`}
                   >
-                    <div className="bg-white p-3 rounded-xl shadow-md hover:shadow-xl transition-all duration-300">
-                      <div className="relative overflow-hidden rounded-lg">
+                    <div className="bg-white p-2 sm:p-3 rounded-lg sm:rounded-xl shadow-md hover:shadow-xl transition-all duration-300">
+                      <div className="relative overflow-hidden rounded-md sm:rounded-lg">
                         <Image
-                          src={frame.mainImage}
+                          src={frame.image}
                           alt={frame.title}
-                          width={160}
-                          height={200}
+                          width={140}
+                          height={175}
                           className="w-full h-auto object-cover"
                         />
-                        <div className="absolute top-0 left-0 w-full h-full">
-                          <Image
-                            src={frame.overlayImage}
-                            alt={`${frame.title} overlay`}
-                            width={160}
-                            height={200}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        {/* Hover actions */}
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3">
-                          <button className="bg-white/90 p-2 rounded-full hover:bg-white transition-colors">
-                            <FiHeart className="h-4 w-4 text-[#FF9898]" />
-                          </button>
-                          <button className="bg-white/90 p-2 rounded-full hover:bg-white transition-colors">
-                            <FiDownload className="h-4 w-4 text-[#C9A7FF]" />
-                          </button>
-                          <button className="bg-white/90 p-2 rounded-full hover:bg-white transition-colors">
-                            <FiShare2 className="h-4 w-4 text-[#A8EECC]" />
-                          </button>
-                        </div>
                       </div>
-                      <p className="text-center mt-2 text-xs font-medium truncate">{frame.title}</p>
+                      {frame.title && (
+                        <p className="text-center mt-1 sm:mt-2 text-[10px] sm:text-xs font-medium truncate">{frame.title}</p>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -207,14 +158,14 @@ const Hero = () => {
               </div>
               
               {/* Upload your frame CTA */}
-              <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 z-20">
+              {/* <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 z-20">
                 <button className="bg-white shadow-lg rounded-full px-4 py-2 flex items-center gap-2 text-sm font-medium hover:shadow-xl transition-all duration-300 group">
                   <span className="bg-[#A8EECC] p-1.5 rounded-full">
                     <FiCamera className="h-3 w-3 text-gray-700 group-hover:rotate-12 transition-transform" />
                   </span>
-                  Upload Your Frame
+                  Upload Your Frame!
                 </button>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
