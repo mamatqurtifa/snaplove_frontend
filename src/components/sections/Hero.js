@@ -84,15 +84,19 @@ const Hero = () => {
               Snaplove helps you capture beautiful photos with a photobooth experience, share them with the community, and use frames created by others for your perfect photos.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <button className="btn-primary flex items-center justify-center gap-2 group">
-                Get Started 
-                <FiArrowRight className="group-hover:translate-x-1 transition-transform" />
-              </button>
+              <Link 
+                href="/photobooth" 
+                className="btn-primary flex items-center justify-center gap-2 group"
+              >
+                <FiCamera className="group-hover:rotate-12 transition-transform" />
+                Try Photobooth Now
+              </Link>
               <Link 
                 href="/explore" 
                 className="btn-outline flex items-center justify-center gap-2"
               >
-                <FiCamera className="group-hover:rotate-12 transition-transform" /> Browse Frames
+                Browse Frames
+                <FiArrowRight className="group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>
             
