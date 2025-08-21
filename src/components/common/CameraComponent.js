@@ -332,7 +332,7 @@ const CameraComponent = forwardRef(({
         
         {/* Help text */}
         <div className="mt-4 text-xs text-gray-500">
-          If you already allowed access but still see this message, try clicking "Refresh Camera" or reload the page.
+          If you already allowed access but still see this message, try clicking &quot;Refresh Camera&quot; or reload the page.
         </div>
       </div>
     );

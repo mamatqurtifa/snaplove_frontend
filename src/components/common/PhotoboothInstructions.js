@@ -25,7 +25,7 @@ const PhotoboothInstructions = ({ onClose, className = "" }) => {
           <div>
             <h3 className="font-semibold text-gray-900 mb-1">Allow Camera Access</h3>
             <p className="text-gray-600 text-sm">
-              Grant permission to use your camera. Don't worry - your photos stay on your device!
+              Grant permission to use your camera. Don&apos;t worry - your photos stay on your device!
             </p>
           </div>
         </div>
@@ -39,7 +39,7 @@ const PhotoboothInstructions = ({ onClose, className = "" }) => {
           <div>
             <h3 className="font-semibold text-gray-900 mb-1">Position Yourself</h3>
             <p className="text-gray-600 text-sm">
-              Center yourself in the camera view. Make sure you're well-lit and ready to smile!
+              Center yourself in the camera view. Make sure you&apos;re well-lit and ready to smile!
             </p>
           </div>
         </div>
@@ -53,7 +53,7 @@ const PhotoboothInstructions = ({ onClose, className = "" }) => {
           <div>
             <h3 className="font-semibold text-gray-900 mb-1">Get Ready for 2 Photos</h3>
             <p className="text-gray-600 text-sm">
-              You'll have 3 seconds between each photo. Strike different poses for variety!
+              You&apos;ll have 3 seconds between each photo. Strike different poses for variety!
             </p>
           </div>
         </div>

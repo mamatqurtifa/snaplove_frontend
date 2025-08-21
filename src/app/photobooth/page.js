@@ -279,8 +279,8 @@ const PhotoboothPage = () => {
                   Get Ready for Your Photobooth Session!
                 </h2>
                 <p className="text-gray-600 max-w-2xl mx-auto mb-6">
-                  We'll take 2 amazing photos with our special 2x1 frame. 
-                  Make sure you're in a well-lit area and ready to smile!
+                  We&apos;ll take 2 amazing photos with our special 2x1 frame. 
+                  Make sure you&apos;re in a well-lit area and ready to smile!
                 </p>
                 
                 <button
@@ -297,8 +297,8 @@ const PhotoboothPage = () => {
                     <div className="bg-green-50 border border-green-200 rounded-xl p-6">
                       <h3 className="font-semibold text-green-900 mb-2">Camera Ready!</h3>
                       <p className="text-green-700">
-                        Position yourself in the frame and click "Start Session" when you're ready.
-                        You'll have exactly 3 seconds per photo.
+                        Position yourself in the frame and click &quot;Start Session&quot; when you&apos;re ready.
+                        You&apos;ll have exactly 3 seconds per photo.
                       </p>
                     </div>
 
@@ -312,7 +312,7 @@ const PhotoboothPage = () => {
                   </>
                 ) : (
                   <div className="mt-2 text-sm text-gray-600">
-                    Allow camera access above to begin. You can test after it's ready.
+                    Allow camera access above to begin. You can test after it&apos;s ready.
                   </div>
                 )}
               </div>
