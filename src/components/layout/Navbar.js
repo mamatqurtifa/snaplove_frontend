@@ -2,11 +2,15 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { FiMenu, FiX, FiSearch, FiUser, FiHeart, FiBell } from "react-icons/fi";
+import { FiMenu, FiX, FiSearch, FiUser, FiHeart, FiBell, FiLogOut } from "react-icons/fi";
+import { useAuth } from "@/context/AuthContext";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  
+  const { user, isAuthenticated, logout } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -23,6 +27,19 @@ const Navbar = () => {
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
+  };
+  
+  const toggleProfileMenu = () => {
+    setIsProfileOpen(!isProfileOpen);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      setIsProfileOpen(false);
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
   };
 
   return (
@@ -58,16 +75,58 @@ const Navbar = () => {
           <button className="p-2 rounded-full hover:bg-[#FFE99A] transition-all duration-300 hover:rotate-6">
             <FiSearch className="h-5 w-5 text-gray-700" />
           </button>
-          <button className="p-2 rounded-full hover:bg-[#FFE99A] transition-all duration-300 relative group">
-            <FiBell className="h-5 w-5 text-gray-700" />
-            <span className="absolute top-0 right-0 w-2 h-2 bg-[#FF9898] rounded-full group-hover:animate-pulse"></span>
-          </button>
-          <button className="p-2 rounded-full hover:bg-[#FFE99A] transition-all duration-300 hover:rotate-6">
-            <FiHeart className="h-5 w-5 text-gray-700" />
-          </button>
-          <button className="btn-primary flex items-center gap-2 group">
-            <FiUser className="h-5 w-5 group-hover:rotate-12 transition-transform" /> Sign In
-          </button>
+          
+          {isAuthenticated ? (
+            <>
+              <button className="p-2 rounded-full hover:bg-[#FFE99A] transition-all duration-300 relative group">
+                <FiBell className="h-5 w-5 text-gray-700" />
+                <span className="absolute top-0 right-0 w-2 h-2 bg-[#FF9898] rounded-full group-hover:animate-pulse"></span>
+              </button>
+              <button className="p-2 rounded-full hover:bg-[#FFE99A] transition-all duration-300 hover:rotate-6">
+                <FiHeart className="h-5 w-5 text-gray-700" />
+              </button>
+              <div className="relative">
+                <button 
+                  onClick={toggleProfileMenu}
+                  className="flex items-center gap-2 rounded-full hover:ring-2 hover:ring-[#FFE99A] transition-all duration-300 focus:outline-none"
+                >
+                  <Image
+                    src={user?.image_profile || "/images/assets/placeholder-user.png"}
+                    alt="Profile"
+                    width={38}
+                    height={38}
+                    className="rounded-full h-9 w-9 object-cover border-2 border-[#FFE99A]"
+                  />
+                </button>
+                
+                {isProfileOpen && (
+                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg py-2 z-10 border border-gray-100">
+                    <div className="px-4 py-2 border-b border-gray-100">
+                      <p className="font-medium text-gray-800">{user?.name}</p>
+                      <p className="text-sm text-gray-500">@{user?.username}</p>
+                    </div>
+                    <Link 
+                      href="/profile" 
+                      className="block px-4 py-2 text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                      onClick={() => setIsProfileOpen(false)}
+                    >
+                      <FiUser className="h-4 w-4" /> Profile
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="block px-4 py-2 text-gray-700 hover:bg-gray-50 w-full text-left flex items-center gap-2"
+                    >
+                      <FiLogOut className="h-4 w-4" /> Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            </>
+          ) : (
+            <Link href="/auth/login" className="btn-primary flex items-center gap-2 group">
+              <FiUser className="h-5 w-5 group-hover:rotate-12 transition-transform" /> Sign In
+            </Link>
+          )}
         </div>
 
         {/* Mobile Menu Button */}
@@ -93,6 +152,22 @@ const Navbar = () => {
         isMenuOpen ? "max-h-screen opacity-100" : "max-h-0 opacity-0"
       }`}>
         <div className="container mx-auto px-6 py-6 flex flex-col space-y-6">
+          {isAuthenticated && (
+            <div className="flex items-center space-x-3 pb-4 border-b border-gray-100">
+              <Image
+                src={user?.image_profile || "/images/assets/placeholder-user.png"}
+                alt="Profile"
+                width={40}
+                height={40}
+                className="rounded-full h-10 w-10 object-cover border-2 border-[#FFE99A]"
+              />
+              <div>
+                <p className="font-medium text-gray-800">{user?.name}</p>
+                <p className="text-xs text-gray-500">@{user?.username}</p>
+              </div>
+            </div>
+          )}
+          
           {["Explore", "Leaderboard", "Pricing", "Help Center"].map((item, index) => (
             <Link 
               key={index}
@@ -103,13 +178,41 @@ const Navbar = () => {
               {item}
             </Link>
           ))}
+          
           <div className="pt-4 border-t border-gray-100 flex flex-col space-y-4">
-            <button className="btn-outline flex items-center justify-center gap-2 w-full">
-              <FiHeart className="h-5 w-5" /> Favorites
-            </button>
-            <button className="btn-primary flex items-center justify-center gap-2 w-full">
-              <FiUser className="h-5 w-5" /> Sign In
-            </button>
+            {isAuthenticated ? (
+              <>
+                <Link 
+                  href="/profile" 
+                  className="btn-outline flex items-center justify-center gap-2 w-full"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <FiUser className="h-5 w-5" /> Profile
+                </Link>
+                <button 
+                  onClick={() => {
+                    handleLogout();
+                    setIsMenuOpen(false);
+                  }} 
+                  className="btn-primary flex items-center justify-center gap-2 w-full"
+                >
+                  <FiLogOut className="h-5 w-5" /> Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <button className="btn-outline flex items-center justify-center gap-2 w-full">
+                  <FiHeart className="h-5 w-5" /> Favorites
+                </button>
+                <Link 
+                  href="/auth/login" 
+                  className="btn-primary flex items-center justify-center gap-2 w-full"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <FiUser className="h-5 w-5" /> Sign In
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </div>
