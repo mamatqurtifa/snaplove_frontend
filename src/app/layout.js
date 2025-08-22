@@ -1,26 +1,20 @@
 import { Inter } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
 import { AuthProvider } from "@/context/AuthContext";
+import { metadata } from './metadata';
 
 const inter = Inter({ subsets: ["latin"] });
 
-export const metadata = {
-  title: "SnapLove - Create & Share Beautiful Photo Frames",
-  description: "SnapLove is a platform to create, share and use beautiful photo frames with loved ones",
-};
+export { metadata };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className="scroll-smooth">
       <head>
-        {/* Nunito Font */}
         <link
           href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap"
           rel="stylesheet"
         />
-        {/* Quicksand for headings */}
         <link
           href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&display=swap"
           rel="stylesheet"
@@ -28,9 +22,7 @@ export default function RootLayout({ children }) {
       </head>
       <body className={`${inter.className} min-h-screen flex flex-col`}>
         <AuthProvider>
-          <Navbar />
-          <main className="flex-grow mt-16">{children}</main>
-          <Footer />
+          {children}
         </AuthProvider>
       </body>
     </html>
