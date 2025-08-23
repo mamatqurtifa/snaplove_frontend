@@ -4,7 +4,7 @@ export const authService = {
   // Register a new user
   register: async (userData) => {
     try {
-      const response = await api.post('/auth/register', userData);
+  const response = await api.post('/api/auth/register', userData);
       if (response.data.success) {
         localStorage.setItem('token', response.data.data.token);
       }
@@ -17,7 +17,7 @@ export const authService = {
   // Login user
   login: async (userData) => {
     try {
-      const response = await api.post('/auth/login', userData);
+  const response = await api.post('/api/auth/login', userData);
       if (response.data.success) {
         localStorage.setItem('token', response.data.data.token);
       }
@@ -30,7 +30,7 @@ export const authService = {
   // Get current user info
   getMe: async () => {
     try {
-      const response = await api.get('/auth/me');
+  const response = await api.get('/api/auth/me');
       return response.data;
     } catch (error) {
       throw error.response ? error.response.data : new Error('Server error');
@@ -40,7 +40,7 @@ export const authService = {
   // Logout user
   logout: async () => {
     try {
-      const response = await api.post('/auth/logout');
+  const response = await api.post('/api/auth/logout');
       localStorage.removeItem('token');
       return response.data;
     } catch (error) {

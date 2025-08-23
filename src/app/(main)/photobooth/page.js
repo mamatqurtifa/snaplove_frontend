@@ -8,6 +8,9 @@ import CameraComponent from '@/components/common/CameraComponent';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import PhotoboothInstructions from '@/components/common/PhotoboothInstructions';
 import { createPhotoboothResult, downloadImage, shareImage } from '@/lib/photoboothUtils';
+import { frameService } from '@/services/frame';
+import { userService } from '@/services/user';
+import { useAuth } from '@/context/AuthContext';
 import { playSound, triggerHapticFeedback } from '@/lib/audioUtils';
 
 const PhotoboothPage = () => {
@@ -19,6 +22,10 @@ const PhotoboothPage = () => {
   const [finalResult, setFinalResult] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
+  const [publicFrames, setPublicFrames] = useState([]);
+  const [privateFrames, setPrivateFrames] = useState([]);
+  const [selectedFrame, setSelectedFrame] = useState(null); // will hold frame object
+  const { user, isAuthenticated } = useAuth();
 
   const cameraRef = useRef(null);
   const countdownIntervalRef = useRef(null);
@@ -37,6 +44,23 @@ const PhotoboothPage = () => {
   const handlePermissionDenied = (error) => {
     console.error('Camera permission denied:', error);
   };
+
+  // Load frames
+  useEffect(() => {
+    const loadFrames = async () => {
+      try {
+        const pub = await frameService.getPublicFrames();
+        setPublicFrames(pub?.data || []);
+        if (isAuthenticated && user?.username) {
+          const priv = await userService.getPrivateFrames(user.username);
+          setPrivateFrames(priv?.data || []);
+        }
+      } catch (e) {
+        console.error('Failed loading frames', e);
+      }
+    };
+    loadFrames();
+  }, [isAuthenticated, user]);
 
   // Start photobooth session
   const startSession = () => {
@@ -143,7 +167,12 @@ const PhotoboothPage = () => {
     setIsLoading(true);
 
     try {
-      const resultUrl = await createPhotoboothResult(photos, '2x1');
+      let frameType = '2x1';
+      let dynamicFrameUrl = null;
+      if (selectedFrame) {
+        dynamicFrameUrl = selectedFrame?.image_url || selectedFrame?.url || null;
+      }
+      const resultUrl = await createPhotoboothResult(photos, frameType, dynamicFrameUrl);
       setFinalResult(resultUrl);
       setStep('result');
       
@@ -279,8 +308,7 @@ const PhotoboothPage = () => {
                   Get Ready for Your Photobooth Session!
                 </h2>
                 <p className="text-gray-600 max-w-2xl mx-auto mb-6">
-                  We&apos;ll take 2 amazing photos with our special 2x1 frame. 
-                  Make sure you&apos;re in a well-lit area and ready to smile!
+                  We&apos;ll take 2 amazing photos. Choose a frame below or use the default SnapLove frame.
                 </p>
                 
                 <button
@@ -289,6 +317,35 @@ const PhotoboothPage = () => {
                 >
                   First time? View instructions
                 </button>
+              </div>
+
+              {/* Frame Selector */}
+              <div className="mb-8 text-left">
+                <h3 className="text-sm font-semibold text-gray-700 mb-2">Select Frame</h3>
+                <div className="grid grid-cols-2 gap-4 max-h-60 overflow-y-auto">
+                  {[...privateFrames.map(f => ({...f, scope:'private'})), ...publicFrames.map(f => ({...f, scope:'public'}))].map(frame => (
+                    <button
+                      type="button"
+                      key={`${frame.scope}-${frame.id || frame._id}`}
+                      onClick={() => setSelectedFrame(frame)}
+                      className={`border rounded-lg p-2 flex flex-col items-center gap-2 hover:border-pink-400 transition relative ${selectedFrame && (selectedFrame.id===frame.id || selectedFrame._id===frame._id) ? 'ring-2 ring-pink-500 border-pink-400' : 'border-gray-200'}`}
+                    >
+                      <div className="w-full aspect-[1/2] bg-gray-50 rounded-md overflow-hidden flex items-center justify-center text-xs text-gray-400">
+                        {frame.thumbnail_url || frame.image_url || frame.url ? (
+                          <img src={frame.thumbnail_url || frame.image_url || frame.url} alt={frame.title || 'Frame'} className="object-cover w-full h-full" />
+                        ) : 'No Preview'}
+                      </div>
+                      <span className="text-[11px] font-medium line-clamp-1 w-full">{frame.title || 'Untitled'}</span>
+                      <span className="absolute top-1 right-1 text-[10px] px-1.5 py-0.5 rounded bg-white/80 backdrop-blur text-gray-600 border border-gray-200">{frame.scope}</span>
+                    </button>
+                  ))}
+                </div>
+                {selectedFrame && (
+                  <div className="mt-3 text-xs text-gray-600 flex items-center justify-between">
+                    <span>Selected: <strong>{selectedFrame.title || 'Untitled'}</strong></span>
+                    <button type="button" onClick={() => setSelectedFrame(null)} className="text-pink-600 hover:underline">Reset</button>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-6">
@@ -416,6 +473,9 @@ const PhotoboothPage = () => {
               <h2 className="text-3xl font-bold text-gray-900 mb-6">
                 Your Photobooth Result is Ready! 🎉
               </h2>
+              {selectedFrame && (
+                <p className="text-xs text-gray-500 mb-2">Frame: {selectedFrame.title || selectedFrame.name || 'Custom'} ({selectedFrame.scope})</p>
+              )}
               
               {/* Final Result Image */}
               <div className="mb-8">
