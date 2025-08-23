@@ -1,10 +1,13 @@
 "use client";
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { authService } from '@/services/auth';
+import { useAuth } from '@/context/AuthContext';
 
 const GoogleAuthButton = ({ onSuccess, buttonText = "Login with Google", isRegister = false, className = "" }) => {
   const router = useRouter();
+  const { login, register } = useAuth();
+  const [initializing, setInitializing] = useState(true);
+  const [authLoading, setAuthLoading] = useState(false);
 
   useEffect(() => {
     // Load Google API script
@@ -14,7 +17,7 @@ const GoogleAuthButton = ({ onSuccess, buttonText = "Login with Google", isRegis
     script.defer = true;
     document.body.appendChild(script);
 
-    script.onload = () => {
+  script.onload = () => {
       window.google?.accounts.id.initialize({
         client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
         callback: handleCredentialResponse,
@@ -30,6 +33,7 @@ const GoogleAuthButton = ({ onSuccess, buttonText = "Login with Google", isRegis
           shape: 'pill',
         }
       );
+      setInitializing(false);
     };
 
     return () => {
@@ -43,6 +47,7 @@ const GoogleAuthButton = ({ onSuccess, buttonText = "Login with Google", isRegis
 
   const handleCredentialResponse = async (response) => {
     try {
+      setAuthLoading(true);
       // Decode JWT ID token from Google
       const base64Url = response.credential.split('.')[1];
       const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -59,39 +64,53 @@ const GoogleAuthButton = ({ onSuccess, buttonText = "Login with Google", isRegis
         image_profile: picture
       };
 
+      let result;
       if (isRegister) {
-        // Register flow
-        const result = await authService.register(userData);
-        if (result.success) {
-          if (onSuccess) {
-            onSuccess(result.data);
+        // Explicit register page still supported
+        result = await register(userData);
+      } else {
+        // Try login first
+        try {
+          result = await login({ google_id: sub, email });
+        } catch (err) {
+          const msg = err?.message || err?.error || '';
+          // Auto-register if backend indicates user not found
+            if (/not\s*found|register\s*first/i.test(msg)) {
+            try {
+              result = await register(userData);
+            } catch (regErr) {
+              throw regErr;
+            }
           } else {
-            router.push('/');
+            throw err;
           }
+        }
+      }
+      if (result?.success) {
+        if (onSuccess) {
+          onSuccess(result.data);
+        } else {
+          router.push('/profile');
         }
       } else {
-        // Login flow
-        const result = await authService.login({
-          google_id: sub,
-          email
-        });
-        if (result.success) {
-          if (onSuccess) {
-            onSuccess(result.data);
-          } else {
-            router.push('/');
-          }
-        }
+        throw new Error(result?.message || 'Authentication failed');
       }
     } catch (error) {
       console.error('Google auth error:', error);
       alert(error.message || 'Authentication failed');
+    } finally {
+      setAuthLoading(false);
     }
   };
 
   return (
     <div className={`w-full ${className}`}>
-      <div id="google-button" className="flex justify-center"></div>
+      {(initializing || authLoading) && (
+        <div className="w-full mb-3 text-center text-xs text-gray-500 animate-pulse">
+          {authLoading ? 'Memproses akun...' : 'Memuat Google OAuth...'}
+        </div>
+      )}
+      <div id="google-button" className="flex justify-center opacity-100"></div>
     </div>
   );
 };
