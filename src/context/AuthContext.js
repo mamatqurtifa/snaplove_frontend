@@ -1,5 +1,5 @@
 "use client";
-import { createContext, useState, useEffect, useContext } from 'react';
+import { createContext, useState, useEffect, useContext, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { authService } from '@/services/auth';
 
@@ -17,8 +17,9 @@ export const AuthProvider = ({ children }) => {
         if (typeof window !== 'undefined') {
           const token = localStorage.getItem('token');
           if (token) {
-            const { data } = await authService.getMe();
-            setUser(data.user);
+            const body = await authService.getMe();
+            const fetchedUser = body?.data?.user || body?.user || body?.data?.data?.user || null;
+            if (fetchedUser) setUser(fetchedUser);
           }
         }
       } catch (error) {
@@ -36,9 +37,10 @@ export const AuthProvider = ({ children }) => {
   const login = async (userData) => {
     setLoading(true);
     try {
-      const result = await authService.login(userData);
-      setUser(result.data.user);
-      return result;
+  const body = await authService.login(userData);
+  const loggedUser = body?.data?.user || body?.user || body?.data?.data?.user || null;
+  if (loggedUser) setUser(loggedUser);
+  return body;
     } finally {
       setLoading(false);
     }
@@ -47,9 +49,10 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     setLoading(true);
     try {
-      const result = await authService.register(userData);
-      setUser(result.data.user);
-      return result;
+  const body = await authService.register(userData);
+  const regUser = body?.data?.user || body?.user || body?.data?.data?.user || null;
+  if (regUser) setUser(regUser);
+  return body;
     } finally {
       setLoading(false);
     }
@@ -66,6 +69,21 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const refreshUser = useCallback(async () => {
+    if (!user) return;
+    try {
+  const body = await authService.getMe();
+  const refreshed = body?.data?.user || body?.user || body?.data?.data?.user || null;
+  if (refreshed) setUser(refreshed);
+    } catch (e) {
+      console.error('Failed to refresh user', e);
+    }
+  }, [user]);
+
+  const updateUserInContext = (partial) => {
+    setUser(prev => prev ? { ...prev, ...partial } : prev);
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -74,6 +92,8 @@ export const AuthProvider = ({ children }) => {
         login,
         register,
         logout,
+  refreshUser,
+  updateUserInContext,
         isAuthenticated: !!user,
       }}
     >
