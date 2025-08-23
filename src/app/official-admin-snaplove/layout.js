@@ -1,11 +1,12 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { FaUsers, FaTicketAlt, FaSignOutAlt, FaBars, FaTimes } from 'react-icons/fa';
+import { FaUsers, FaTicketAlt, FaSignOutAlt, FaBars, FaTimes, FaServer, FaChartBar, FaImage } from 'react-icons/fa';
 
 export default function AdminLayout({ children }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -95,17 +96,38 @@ export default function AdminLayout({ children }) {
           <nav className="flex-1 px-2 py-4 bg-white space-y-1">
             <Link 
               href="/official-admin-snaplove/users" 
-              className="flex items-center px-4 py-2 text-gray-600 rounded-lg hover:bg-blue-50 hover:text-blue-700"
+              className={`flex items-center px-4 py-2 rounded-lg hover:bg-blue-50 hover:text-blue-700 ${pathname?.startsWith('/official-admin-snaplove/users') ? 'bg-blue-50 text-blue-700' : 'text-gray-600'}`}
             >
               <FaUsers className="mr-3" />
               User Management
             </Link>
             <Link 
               href="/official-admin-snaplove/tickets" 
-              className="flex items-center px-4 py-2 text-gray-600 rounded-lg hover:bg-blue-50 hover:text-blue-700"
+              className={`flex items-center px-4 py-2 rounded-lg hover:bg-blue-50 hover:text-blue-700 ${pathname?.startsWith('/official-admin-snaplove/tickets') ? 'bg-blue-50 text-blue-700' : 'text-gray-600'}`}
             >
               <FaTicketAlt className="mr-3" />
               Ticket Management
+            </Link>
+            <Link 
+              href="/official-admin-snaplove/framePublicApproval" 
+              className={`flex items-center px-4 py-2 rounded-lg hover:bg-blue-50 hover:text-blue-700 ${pathname?.startsWith('/official-admin-snaplove/framePublicApproval') ? 'bg-blue-50 text-blue-700' : 'text-gray-600'}`}
+            >
+              <FaImage className="mr-3" />
+              Frame Approvals
+            </Link>
+            <Link 
+              href="/official-admin-snaplove/reports" 
+              className={`flex items-center px-4 py-2 rounded-lg hover:bg-blue-50 hover:text-blue-700 ${pathname?.startsWith('/official-admin-snaplove/reports') ? 'bg-blue-50 text-blue-700' : 'text-gray-600'}`}
+            >
+              <FaChartBar className="mr-3" />
+              Reports
+            </Link>
+            <Link 
+              href="/official-admin-snaplove/serverHealth" 
+              className={`flex items-center px-4 py-2 rounded-lg hover:bg-blue-50 hover:text-blue-700 ${pathname === '/official-admin-snaplove/serverHealth' ? 'bg-blue-50 text-blue-700' : 'text-gray-600'}`}
+            >
+              <FaServer className="mr-3" />
+              Server Health
             </Link>
           </nav>
           
@@ -122,9 +144,9 @@ export default function AdminLayout({ children }) {
       </div>
 
       {/* Main content */}
-      <main className="flex-1 ml-0 md:ml-64 p-4 md:p-8 overflow-y-auto">
+      <div className="flex-1 ml-0 md:ml-64 p-4 md:p-8 overflow-y-auto">
         {children}
-      </main>
+      </div>
     </div>
   );
 }

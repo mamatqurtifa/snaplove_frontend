@@ -18,7 +18,7 @@ export default function UserDetailPage({ params }) {
         const token = localStorage.getItem('token');
         
         if (!token) {
-          router.push('/login');
+          router.push('/auth/login');
           return;
         }
         
