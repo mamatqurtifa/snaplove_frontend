@@ -1,5 +1,4 @@
 export async function generateMetadata({ params }) {
-  // We need to destructure params immediately to avoid the error
   const { username } = params || {};
   
   if (!username) {
@@ -9,20 +8,14 @@ export async function generateMetadata({ params }) {
   }
   
   try {
-    // Use fetch instead of axios for server components
     const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/user/${username}`;
     const response = await fetch(apiUrl, { 
-      next: { revalidate: 60 }, // Revalidate every 60 seconds
-      // We can't include auth headers here since this runs on the server
+      next: { revalidate: 60 },
+      headers: {
+        'x-api-key': process.env.NEXT_PUBLIC_API_KEY,
+        'Accept': 'application/json'
+      }
     });
-    
-    // If we get a 403, we know the profile exists but requires authentication
-    if (response.status === 403) {
-      return {
-        title: `Private Profile | SnapLove`,
-        description: 'This profile requires authentication to view',
-      };
-    }
     
     if (!response.ok) {
       return {
