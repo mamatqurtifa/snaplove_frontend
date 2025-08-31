@@ -102,7 +102,6 @@ export const frameService = {
     }
 
     // Log what we're sending
-    // eslint-disable-next-line no-console
     console.log('[uploadFrame] Sending FormData:');
     const formEntries = [];
     for (const [key, value] of formData.entries()) {
@@ -112,7 +111,6 @@ export const frameService = {
         formEntries.push(`${key}: "${value}"`);
       }
     }
-    // eslint-disable-next-line no-console
     console.log(formEntries.join('\n  '));
 
     try {
@@ -125,18 +123,15 @@ export const frameService = {
         onUploadProgress: (progressEvent) => {
           if (progressEvent.total) {
             const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-            // eslint-disable-next-line no-console
             console.log(`[uploadFrame] Progress: ${progress}% (${progressEvent.loaded}/${progressEvent.total})`);
           }
         },
       });
 
-      // eslint-disable-next-line no-console
       console.log('[uploadFrame] Success:', data);
       return data;
       
     } catch (err) {
-      // eslint-disable-next-line no-console
       console.error('[uploadFrame] Error details:', {
         message: err.message,
         code: err.code,
