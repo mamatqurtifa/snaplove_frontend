@@ -9,6 +9,7 @@ import ProfileTabs from '@/components/profile/ProfileTabs';
 import UserProfileStats from '@/components/profile/UserProfileStats';
 import UserNotFound from '@/components/profile/UserNotFound';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import RoleBadge from '@/components/ui/RoleBadge';
 
 export default function UserProfilePage() {
   const router = useRouter();
@@ -296,7 +297,11 @@ export default function UserProfilePage() {
           
           <div className="flex-1 text-center md:text-left">
             <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
-              <h1 className="text-xl md:text-2xl font-bold">{user.name}</h1>
+              <div className="flex flex-col md:flex-row items-center gap-2">
+                <h1 className="text-xl md:text-2xl font-bold">{user.name}</h1>
+                {/* Add RoleBadge here */}
+                <RoleBadge role={user.role} />
+              </div>
               
               {/* Follow/Unfollow Button - Only show if not viewing own profile */}
               {currentUser && currentUser.username !== username && (
@@ -363,6 +368,7 @@ export default function UserProfilePage() {
               <p><strong>Current User:</strong> {currentUser ? currentUser.username : 'Not logged in'}</p>
               <p><strong>Profile User:</strong> {username}</p>
               <p><strong>User Bio:</strong> {user?.bio || 'No bio'}</p>
+              <p><strong>User Role:</strong> {user?.role || 'No role'}</p>
               <p><strong>Is Following:</strong> {isFollowing ? 'Yes' : 'No'}</p>
               <p><strong>Follow Loading:</strong> {followLoading ? 'Yes' : 'No'}</p>
               <p><strong>Stats Refresh Key:</strong> {statsRefreshKey}</p>
