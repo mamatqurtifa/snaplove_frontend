@@ -117,22 +117,35 @@ export default function UserProfilePage() {
   // Check if current user is following this profile user
   useEffect(() => {
     const checkFollowStatus = async () => {
-      if (!currentUser || !username || currentUser.username === username) return;
+      if (!currentUser || !username || currentUser.username === username) {
+        console.log('Skipping follow check:', { currentUser: currentUser?.username, username, sameUser: currentUser?.username === username });
+        return;
+      }
       
       try {
-        console.log('Checking follow status for:', username);
+        console.log(`Checking if ${currentUser.username} is following ${username}`);
         const response = await api.get(`/user/${currentUser.username}/following/check/${username}`);
         console.log('Follow check response:', response.data);
+        
         if (response.data.success) {
-          setIsFollowing(response.data.data.isFollowing);
+          const isFollowingStatus = response.data.data.is_following; // API uses is_following, not isFollowing
+          console.log('Follow status from API:', isFollowingStatus);
+          setIsFollowing(isFollowingStatus);
+        } else {
+          console.error('Follow check failed:', response.data.message);
+          setIsFollowing(false);
         }
       } catch (error) {
         console.error('Error checking follow status:', error);
+        if (error.response) {
+          console.error('Follow check error response:', error.response.data);
+        }
+        setIsFollowing(false);
       }
     };
     
     checkFollowStatus();
-  }, [currentUser, username]);
+  }, [currentUser, username, statsRefreshKey]); // Added statsRefreshKey to dependencies
 
   // Function to handle follow/unfollow
   const handleFollowToggle = async () => {
@@ -313,8 +326,15 @@ export default function UserProfilePage() {
             
             <p className="text-gray-600 mb-2">@{user.username}</p>
             
-            {user.bio && (
-              <p className="text-gray-800 mt-2 mb-4">{user.bio}</p>
+            {/* Bio Section */}
+            {user.bio ? (
+              <p className="text-gray-800 mt-3 mb-4 text-sm md:text-base leading-relaxed">
+                {user.bio}
+              </p>
+            ) : (
+              <p className="text-gray-500 italic mt-3 mb-4 text-sm">
+                No bio available
+              </p>
             )}
             
             <div className="text-sm text-gray-500">
@@ -335,20 +355,21 @@ export default function UserProfilePage() {
       <ProfileTabs username={username} currentUser={currentUser} />
       
       {/* Debug section - Remove in production */}
-      {/* {process.env.NODE_ENV === 'development' && (
+      {process.env.NODE_ENV === 'development' && (
         <div className="mt-8">
           <details className="bg-gray-100 p-4 rounded-lg">
             <summary className="font-bold cursor-pointer">Follow Debug Info</summary>
             <div className="mt-2 text-sm">
               <p><strong>Current User:</strong> {currentUser ? currentUser.username : 'Not logged in'}</p>
               <p><strong>Profile User:</strong> {username}</p>
+              <p><strong>User Bio:</strong> {user?.bio || 'No bio'}</p>
               <p><strong>Is Following:</strong> {isFollowing ? 'Yes' : 'No'}</p>
               <p><strong>Follow Loading:</strong> {followLoading ? 'Yes' : 'No'}</p>
               <p><strong>Stats Refresh Key:</strong> {statsRefreshKey}</p>
             </div>
           </details>
         </div>
-      )} */}
+      )}
     </div>
   );
 }
