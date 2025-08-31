@@ -120,10 +120,8 @@ const PhotoboothPage = () => {
       // Try a few times in case video needs a moment
       let photoUrl = null;
       for (let i = 0; i < 5; i++) {
-        // eslint-disable-next-line no-await-in-loop
         photoUrl = await cameraRef.current.captureFrame();
         if (photoUrl) break;
-        // eslint-disable-next-line no-await-in-loop
         await new Promise(r => setTimeout(r, 150));
       }
       if (photoUrl) {
