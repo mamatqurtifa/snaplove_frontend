@@ -92,7 +92,7 @@ const Hero = () => {
                 Try Photobooth Now
               </Link>
               <Link 
-                href="/explore" 
+                href="/discover" 
                 className="btn-outline flex items-center justify-center gap-2"
               >
                 Browse Frames

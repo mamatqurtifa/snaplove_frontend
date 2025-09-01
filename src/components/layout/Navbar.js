@@ -60,7 +60,7 @@ const Navbar = () => {
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center space-x-8">
-          {["Explore", "Leaderboard", "Pricing", "Help Center"].map((item, index) => (
+          {["Discover", "Leaderboard", "Pricing", "Help Center"].map((item, index) => (
             <Link key={index} href={`/${item.toLowerCase().replace(" ", "-")}`} className="nav-link group">
               <span className="relative overflow-hidden">
                 {item}
@@ -168,7 +168,7 @@ const Navbar = () => {
             </div>
           )}
           
-          {["Explore", "Leaderboard", "Pricing", "Help Center"].map((item, index) => (
+          {["Discover", "Leaderboard", "Pricing", "Help Center"].map((item, index) => (
             <Link 
               key={index}
               href={`/${item.toLowerCase().replace(" ", "-")}`} 
