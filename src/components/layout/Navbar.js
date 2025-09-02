@@ -1,16 +1,27 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { FiMenu, FiX, FiSearch, FiUser, FiHeart, FiBell, FiLogOut, FiSettings } from "react-icons/fi";
 import { useAuth } from "@/context/AuthContext";
+import { useSocket } from "@/hooks/useSocket";
+import NotificationDropdown from "@/components/notifications/NotificationDropdown";
+import notificationService from "@/services/notificationService";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   
   const { user, isAuthenticated, logout } = useAuth();
+  const { socket, isConnected } = useSocket();
+  const notificationRef = useRef(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -25,6 +36,250 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Initial load notifications from API when authenticated
+  useEffect(() => {
+    if (isAuthenticated && user?.username) {
+      fetchUnreadCount();
+    }
+  }, [isAuthenticated, user?.username]);
+
+  // Socket event listeners
+  useEffect(() => {
+    if (!socket || !isAuthenticated || !isConnected) return;
+
+    // Listen for new notifications
+    socket.on('new_notification', (notification) => {
+      setNotifications(prev => [notification, ...prev]);
+      setUnreadCount(prev => prev + 1);
+      
+      // Show browser notification if permission granted
+      if (Notification.permission === 'granted') {
+        new Notification('New SnapLove Notification', {
+          body: getNotificationMessage(notification),
+          icon: '/images/assets/Logo/snaplove-icon.png'
+        });
+      }
+    });
+
+    // Listen for unread count updates
+    socket.on('unread_count', (data) => {
+      setUnreadCount(data.count);
+    });
+
+    // Listen for notifications list
+    socket.on('notifications_list', (data) => {
+      if (page === 1) {
+        setNotifications(data.notifications);
+      } else {
+        setNotifications(prev => [...prev, ...data.notifications]);
+      }
+      setHasMore(data.hasMore);
+      setLoading(false);
+    });
+
+    // Listen for errors
+    socket.on('error', (error) => {
+      console.error('Socket error:', error);
+      setLoading(false);
+      // Fallback to API if socket fails
+      fetchNotificationsFromAPI(page);
+    });
+    
+    return () => {
+      if (socket) {
+        socket.off('new_notification');
+        socket.off('unread_count');
+        socket.off('notifications_list');
+        socket.off('error');
+      }
+    };
+  }, [socket, isAuthenticated, isConnected, page]);
+
+  // Click outside to close dropdowns
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (notificationRef.current && !notificationRef.current.contains(event.target)) {
+        setIsNotificationOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Request notification permission
+  useEffect(() => {
+    if (isAuthenticated && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  }, [isAuthenticated]);
+
+  const fetchUnreadCount = async () => {
+    if (!user?.username) return;
+    
+    try {
+      const response = await notificationService.getUnreadCount(user.username);
+      if (response.success) {
+        setUnreadCount(response.data.count || response.data.unread_count || 0);
+      }
+    } catch (error) {
+      console.error('Error fetching unread count:', error);
+      // Try to get from full notifications if unread count endpoint fails
+      try {
+        const notifResponse = await notificationService.getNotifications(user.username, { 
+          page: 1, 
+          limit: 1 
+        });
+        if (notifResponse.success) {
+          setUnreadCount(notifResponse.data.unread_count || 0);
+        }
+      } catch (fallbackError) {
+        console.error('Fallback unread count error:', fallbackError);
+      }
+    }
+  };
+
+  const fetchNotificationsFromAPI = async (pageNum = 1) => {
+    if (!user?.username || loading) return;
+    
+    setLoading(true);
+    try {
+      const response = await notificationService.getNotifications(user.username, {
+        page: pageNum,
+        limit: 20
+      });
+      
+      if (response.success) {
+        const notificationsData = response.data.notifications || [];
+        const pagination = response.data.pagination || {};
+        
+        if (pageNum === 1) {
+          setNotifications(notificationsData);
+        } else {
+          setNotifications(prev => [...prev, ...notificationsData]);
+        }
+        
+        setHasMore(pagination.has_next_page || false);
+        setPage(pageNum);
+        
+        // Update unread count if available
+        if (response.data.unread_count !== undefined) {
+          setUnreadCount(response.data.unread_count);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching notifications from API:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchNotifications = (pageNum = 1) => {
+    // Try socket first, fallback to API
+    if (socket && isConnected && !loading) {
+      setLoading(true);
+      setPage(pageNum);
+      socket.emit('get_notifications', {
+        page: pageNum,
+        limit: 20
+      });
+      
+      // Set timeout fallback to API
+      setTimeout(() => {
+        if (loading) {
+          console.log('Socket timeout, falling back to API');
+          fetchNotificationsFromAPI(pageNum);
+        }
+      }, 3000);
+    } else {
+      // Direct API call if socket not available
+      fetchNotificationsFromAPI(pageNum);
+    }
+  };
+
+  const markNotificationRead = async (notificationId) => {
+    if (!user?.username) return;
+    
+    try {
+      // Use API call for marking as read
+      await notificationService.markAsRead(user.username, notificationId);
+      
+      // Also emit socket event if connected
+      if (socket && isConnected) {
+        socket.emit('mark_notification_read', notificationId);
+      }
+      
+      // Update local state
+      setNotifications(prev => 
+        prev.map(notif => 
+          notif.id === notificationId 
+            ? { ...notif, is_read: true }
+            : notif
+        )
+      );
+      setUnreadCount(prev => Math.max(0, prev - 1));
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
+  };
+
+  const markAllRead = async () => {
+    if (!user?.username) return;
+    
+    try {
+      // Use API call for marking all as read
+      await notificationService.markAllAsRead(user.username);
+      
+      // Also emit socket event if connected
+      if (socket && isConnected) {
+        socket.emit('mark_all_read');
+      }
+      
+      // Update local state
+      setNotifications(prev => 
+        prev.map(notif => ({ ...notif, is_read: true }))
+      );
+      setUnreadCount(0);
+    } catch (error) {
+      console.error('Error marking all as read:', error);
+    }
+  };
+
+  const deleteNotification = async (notificationId) => {
+    if (!user?.username) return;
+    
+    try {
+      await notificationService.deleteNotification(user.username, notificationId);
+      
+      // Update local state
+      setNotifications(prev => 
+        prev.filter(notif => notif.id !== notificationId)
+      );
+      
+      // Update unread count if the deleted notification was unread
+      const deletedNotification = notifications.find(n => n.id === notificationId);
+      if (deletedNotification && !deletedNotification.is_read) {
+        setUnreadCount(prev => Math.max(0, prev - 1));
+      }
+    } catch (error) {
+      console.error('Error deleting notification:', error);
+      alert('Failed to delete notification');
+    }
+  };
+
+  const getNotificationMessage = (notification) => {
+    const messages = {
+      frame_like: `${notification.sender?.name} liked your frame`,
+      frame_use: `${notification.sender?.name} used your frame to take a photo`,
+      frame_approved: 'Your frame was approved by admin',
+      frame_rejected: 'Your frame was rejected by admin',
+      user_follow: `${notification.sender?.name} started following you`,
+      frame_upload: `${notification.sender?.name} uploaded a new frame`,
+      system: notification.message
+    };
+    return messages[notification.type] || notification.message;
+  };
+
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
@@ -33,10 +288,21 @@ const Navbar = () => {
     setIsProfileOpen(!isProfileOpen);
   };
 
+  const toggleNotificationMenu = () => {
+    setIsNotificationOpen(!isNotificationOpen);
+    if (!isNotificationOpen) {
+      // Reset to first page when opening
+      setPage(1);
+      fetchNotifications(1);
+    }
+  };
+
   const handleLogout = async () => {
     try {
       await logout();
       setIsProfileOpen(false);
+      setNotifications([]);
+      setUnreadCount(0);
     } catch (error) {
       console.error("Logout error:", error);
     }
@@ -81,10 +347,33 @@ const Navbar = () => {
           
           {isAuthenticated ? (
             <>
-              <button className="p-2 rounded-full hover:bg-[#FFE99A] transition-all duration-300 relative group">
-                <FiBell className="h-5 w-5 text-gray-700" />
-                <span className="absolute top-0 right-0 w-2 h-2 bg-[#FF9898] rounded-full group-hover:animate-pulse"></span>
-              </button>
+              {/* Notification Button */}
+              <div className="relative" ref={notificationRef}>
+                <button 
+                  onClick={toggleNotificationMenu}
+                  className="p-2 rounded-full hover:bg-[#FFE99A] transition-all duration-300 relative group"
+                >
+                  <FiBell className="h-5 w-5 text-gray-700" />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-[#FF9898] text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium min-w-[20px] group-hover:animate-pulse">
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </span>
+                  )}
+                </button>
+                
+                <NotificationDropdown 
+                  isOpen={isNotificationOpen}
+                  notifications={notifications}
+                  loading={loading}
+                  hasMore={hasMore}
+                  onMarkRead={markNotificationRead}
+                  onMarkAllRead={markAllRead}
+                  onLoadMore={() => fetchNotifications(page + 1)}
+                  onDeleteNotification={deleteNotification}
+                  getNotificationMessage={getNotificationMessage}
+                />
+              </div>
+
               <button className="p-2 rounded-full hover:bg-[#FFE99A] transition-all duration-300 hover:rotate-6">
                 <FiHeart className="h-5 w-5 text-gray-700" />
               </button>
@@ -146,6 +435,23 @@ const Navbar = () => {
           <button className="p-2 rounded-full hover:bg-[#FFE99A] transition-colors">
             <FiSearch className="h-5 w-5 text-gray-700" />
           </button>
+          
+          {isAuthenticated && (
+            <div className="relative">
+              <button 
+                onClick={toggleNotificationMenu}
+                className="p-2 rounded-full hover:bg-[#FFE99A] transition-colors relative"
+              >
+                <FiBell className="h-5 w-5 text-gray-700" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-[#FF9898] text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium min-w-[20px]">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                )}
+              </button>
+            </div>
+          )}
+          
           <button
             onClick={toggleMenu}
             className="p-2 rounded-full hover:bg-[#FFE99A] transition-colors"
@@ -158,6 +464,24 @@ const Navbar = () => {
           </button>
         </div>
       </div>
+
+      {/* Mobile Notification Dropdown */}
+      {isAuthenticated && (
+        <div className="md:hidden">
+          <NotificationDropdown 
+            isOpen={isNotificationOpen}
+            notifications={notifications}
+            loading={loading}
+            hasMore={hasMore}
+            onMarkRead={markNotificationRead}
+            onMarkAllRead={markAllRead}
+            onLoadMore={() => fetchNotifications(page + 1)}
+            onDeleteNotification={deleteNotification}
+            getNotificationMessage={getNotificationMessage}
+            isMobile={true}
+          />
+        </div>
+      )}
 
       {/* Mobile Menu */}
       <div className={`md:hidden absolute w-full bg-white shadow-lg transition-all duration-300 ease-in-out overflow-hidden ${
