@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { FiMenu, FiX, FiSearch, FiUser, FiHeart, FiBell, FiLogOut } from "react-icons/fi";
+import { FiMenu, FiX, FiSearch, FiUser, FiHeart, FiBell, FiLogOut, FiSettings } from "react-icons/fi";
 import { useAuth } from "@/context/AuthContext";
 
 const Navbar = () => {
@@ -41,6 +41,9 @@ const Navbar = () => {
       console.error("Logout error:", error);
     }
   };
+
+  // Check if user has admin role
+  const isAdmin = user?.role && (user.role.toLowerCase().includes('official') || user.role.toLowerCase().includes('developer'));
 
   return (
     <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${
@@ -112,6 +115,15 @@ const Navbar = () => {
                     >
                       <FiUser className="h-4 w-4" /> Profile
                     </Link>
+                    {isAdmin && (
+                      <Link 
+                        href="/official-admin-snaplove" 
+                        className="block px-4 py-2 text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                        onClick={() => setIsProfileOpen(false)}
+                      >
+                        <FiSettings className="h-4 w-4" /> Admin Panel
+                      </Link>
+                    )}
                     <button
                       onClick={handleLogout}
                       className="block px-4 py-2 text-gray-700 hover:bg-gray-50 w-full text-left flex items-center gap-2"
@@ -189,6 +201,15 @@ const Navbar = () => {
                 >
                   <FiUser className="h-5 w-5" /> Profile
                 </Link>
+                {isAdmin && (
+                  <Link 
+                    href="/official-admin-snaplove" 
+                    className="btn-outline flex items-center justify-center gap-2 w-full"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <FiSettings className="h-5 w-5" /> Admin Panel
+                  </Link>
+                )}
                 <button 
                   onClick={() => {
                     handleLogout();
