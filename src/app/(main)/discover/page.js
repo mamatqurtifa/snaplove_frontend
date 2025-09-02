@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { frameService } from '@/services/frame';
 import { FiSearch, FiRefreshCcw, FiHeart, FiImage } from 'react-icons/fi';
+import CorsImage from '@/components/common/CorsImage';
 
 const MasonryCard = ({ frame }) => {
   const thumb = frame.thumbnail_url || frame.thumbnail || (Array.isArray(frame.images) && frame.images[0]);
@@ -14,8 +15,7 @@ const MasonryCard = ({ frame }) => {
   <Link href={`/frame/${frame._id || frame.id}`} className={`group relative overflow-hidden rounded-xl bg-white border border-gray-200 shadow-sm hover:shadow-md transition flex flex-col ${aspectClass}`}>
       <div className="relative w-full flex-1 bg-gray-50 flex items-center justify-center">
         {thumb ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={thumb} alt={frame.title || 'Frame'} className="object-cover w-full h-full" />
+          <CorsImage src={thumb} alt={frame.title || 'Frame'} className="object-cover w-full h-full" />
         ) : (
           <div className="flex flex-col items-center text-gray-400 py-6">
             <FiImage className="w-8 h-8 mb-2" />

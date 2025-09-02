@@ -17,18 +17,60 @@ const extractThumbnailUrl = (frame) => {
 export const frameService = {
   // Get public frames with optional filters
   getPublicFrames: async (params = {}) => {
-  const { data } = await api.get('frame/public', { params });
-    return data;
+    try {
+      const { data } = await api.get('frame/public', { params });
+      // Backend returns: { success: true, data: { frames: [...], pagination: {...} } }
+      return data?.data || data;
+    } catch (error) {
+      console.error('Error fetching frames:', error);
+      // Re-throw with more specific error message
+      if (error.code === 'ERR_NETWORK' || error.response?.status === 0) {
+        throw new Error('Unable to connect to server. Please check your internet connection.');
+      }
+      throw error;
+    }
   },
   // Get specific public frame (accessible even if shadow-banned via direct link)
   getPublicFrameById: async (id) => {
-  const { data } = await api.get(`frame/public/${id}`);
-    return data;
+    try {
+      const { data } = await api.get(`frame/public/${id}`);
+      // Backend returns: { success: true, data: { frame: {...} } }
+      return data?.data?.frame || data?.frame || data;
+    } catch (error) {
+      console.error('Error fetching frame:', error);
+      // Re-throw with more specific error message
+      if (error.code === 'ERR_NETWORK' || error.response?.status === 0) {
+        throw new Error('Unable to connect to server. Please check your internet connection.');
+      }
+      if (error.response?.status === 404) {
+        throw new Error('Frame not found.');
+      }
+      if (error.response?.status === 403) {
+        throw new Error('You do not have permission to view this frame.');
+      }
+      throw error;
+    }
   },
   // Like/unlike frame (auth required)
   likePublicFrame: async (id) => {
-  const { data } = await api.post(`frame/public/${id}/like`);
-    return data;
+    try {
+      const { data } = await api.post(`frame/public/${id}/like`);
+      // Backend returns: { success: true, message: "...", data: { is_liked: boolean, total_likes: number } }
+      return data?.data || data;
+    } catch (error) {
+      console.error('Error liking frame:', error);
+      // Re-throw with more specific error message
+      if (error.code === 'ERR_NETWORK' || error.response?.status === 0) {
+        throw new Error('Unable to connect to server. Please check your internet connection.');
+      }
+      if (error.response?.status === 401) {
+        throw new Error('Please login to like frames.');
+      }
+      if (error.response?.status === 404) {
+        throw new Error('Frame not found.');
+      }
+      throw error;
+    }
   },
   // Upload new frame (auth required)
   uploadFrame: async ({ title, desc, layout_type, visibility = 'public', tags = [], frameFiles = [], thumbnailBlob }) => {
@@ -115,8 +157,8 @@ export const frameService = {
 
     try {
       // Use a more conservative timeout and better error handling
-  const endpoint = visibility === 'private' ? 'frame/public' : 'frame/public'; // same endpoint, but we can suggest testing private first
-  const { data } = await api.post(endpoint, formData, {
+      const endpoint = 'frame/public'; // Use relative path for proxy
+      const { data } = await api.post(endpoint, formData, {
         timeout: 90000, // 90 seconds - enough for processing but not infinite
         // Remove all custom headers - let browser set multipart boundary
         headers: {},
@@ -129,7 +171,8 @@ export const frameService = {
       });
 
       console.log('[uploadFrame] Success:', data);
-      return data;
+      // Backend returns: { success: true, data: { frame: {...} } }
+      return data?.data?.frame || data?.frame || data;
       
     } catch (err) {
       console.error('[uploadFrame] Error details:', {
@@ -141,7 +184,9 @@ export const frameService = {
       });
 
       // Better error messages based on common issues
-      if (err.response?.status === 400) {
+      if (err.code === 'ERR_NETWORK' || err.response?.status === 0) {
+        err.displayMessage = 'Network error. Please check your connection and try again.';
+      } else if (err.response?.status === 400) {
         const serverMsg = err.response?.data?.message || err.response?.data?.error;
         err.displayMessage = serverMsg || 'Invalid request. Check file format and required fields.';
         if (serverMsg && /too many files/i.test(serverMsg)) {
@@ -155,8 +200,6 @@ export const frameService = {
         err.displayMessage = 'Invalid file format. Only SVG files are allowed for frames.';
       } else if (err.code === 'ECONNABORTED') {
         err.displayMessage = 'Upload timeout. The server may be processing large files slowly.';
-      } else if (!err.response || err.response?.status === 0) {
-        err.displayMessage = 'Network error. Check your connection and try again.';
       } else {
         err.displayMessage = err.response?.data?.message || `Upload failed: ${err.message}`;
       }
@@ -183,7 +226,7 @@ export const frameService = {
           retryFd.append('thumbnail', thumbFile, thumbFile.name);
         }
         try {
-          const { data: retryData } = await api.post(endpoint, retryFd, { timeout: 90000 });
+          const { data: retryData } = await api.post('frame/public', retryFd, { timeout: 90000 });
           console.log('[uploadFrame] Success after retry');
           return retryData;
         } catch (retryErr) {
