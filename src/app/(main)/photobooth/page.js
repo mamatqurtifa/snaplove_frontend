@@ -1,19 +1,63 @@
 "use client";
 
 import { useState, useRef, useEffect } from 'react';
-import { FiCamera, FiRotateCcw, FiDownload, FiShare2, FiHome, FiPlay } from 'react-icons/fi';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { FiCamera, FiRotateCcw, FiDownload, FiShare2, FiHome, FiPlay, FiX, FiClock, FiLoader } from 'react-icons/fi';
 import Image from 'next/image';
 import Link from 'next/link';
 import CameraComponent from '@/components/common/CameraComponent';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import PhotoboothInstructions from '@/components/common/PhotoboothInstructions';
-import { createPhotoboothResult, downloadImage, shareImage } from '@/lib/photoboothUtils';
+import { createPhotoboothResult } from '@/lib/photoboothUtils';
 import { frameService } from '@/services/frame';
 import { userService } from '@/services/user';
 import { useAuth } from '@/context/AuthContext';
 import { playSound, triggerHapticFeedback } from '@/lib/audioUtils';
 
+// Utility functions for image handling
+const downloadImage = (imageUrl, filename) => {
+  const link = document.createElement('a');
+  link.href = imageUrl;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
+const shareImage = async (imageUrl, title) => {
+  if (navigator.share) {
+    try {
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      const file = new File([blob], 'snaplove-photobooth.jpg', { type: 'image/jpeg' });
+      
+      await navigator.share({
+        title: title,
+        text: 'Check out my SnapLove photobooth result!',
+        files: [file]
+      });
+      return true;
+    } catch (error) {
+      console.error('Error sharing:', error);
+      return false;
+    }
+  } else {
+    // Fallback: copy URL to clipboard
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      return false;
+    } catch (error) {
+      console.error('Error copying to clipboard:', error);
+      return false;
+    }
+  }
+};
+
 const PhotoboothPage = () => {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const { user, isAuthenticated } = useAuth();
+
   const [step, setStep] = useState('preparation'); // preparation, session, countdown, capture, processing, result
   const [capturedPhotos, setCapturedPhotos] = useState([]);
   const [currentCapture, setCurrentCapture] = useState(0);
@@ -22,17 +66,35 @@ const PhotoboothPage = () => {
   const [finalResult, setFinalResult] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
-  const [publicFrames, setPublicFrames] = useState([]);
-  const [privateFrames, setPrivateFrames] = useState([]);
-  const [selectedFrame, setSelectedFrame] = useState(null); // will hold frame object
-  const { user, isAuthenticated } = useAuth();
+  const [frameData, setFrameData] = useState(null);
+  const [loadingFrame, setLoadingFrame] = useState(true);
+  const [savingPhoto, setSavingPhoto] = useState(false);
 
   const cameraRef = useRef(null);
   const countdownIntervalRef = useRef(null);
   const countdownTimeoutRef = useRef(null);
   const isCapturingRef = useRef(false);
   const sessionDoneRef = useRef(false);
-  const MAX_CAPTURES = 2;
+
+  // Clear all timers
+  const clearTimers = () => {
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current);
+      countdownIntervalRef.current = null;
+    }
+    if (countdownTimeoutRef.current) {
+      clearTimeout(countdownTimeoutRef.current);
+      countdownTimeoutRef.current = null;
+    }
+  };
+
+  // Get URL parameters
+  const frameId = searchParams.get('frameId');
+  const layout = searchParams.get('layout') || '2x1';
+  const frameTitle = searchParams.get('title') || 'SnapLove Frame';
+
+  // Calculate max captures based on layout
+  const MAX_CAPTURES = layout === '4x1' ? 4 : layout === '3x1' ? 3 : 2;
 
   // Camera ready callback
   const handleCameraReady = (ready) => {
@@ -45,22 +107,36 @@ const PhotoboothPage = () => {
     console.error('Camera permission denied:', error);
   };
 
-  // Load frames
+  // Load frame data
   useEffect(() => {
-    const loadFrames = async () => {
+    const loadFrameData = async () => {
+      if (!frameId) {
+        setLoadingFrame(false);
+        return;
+      }
+
       try {
-        const pub = await frameService.getPublicFrames();
-        setPublicFrames(pub?.data || []);
-        if (isAuthenticated && user?.username) {
-          const priv = await userService.getPrivateFrames(user.username);
-          setPrivateFrames(priv?.data || []);
-        }
-      } catch (e) {
-        console.error('Failed loading frames', e);
+        setLoadingFrame(true);
+        const frame = await frameService.getPublicFrameById(frameId);
+        setFrameData(frame);
+      } catch (error) {
+        console.error('Failed to load frame:', error);
+        // If frame not found, redirect to home
+        router.push('/');
+      } finally {
+        setLoadingFrame(false);
       }
     };
-    loadFrames();
-  }, [isAuthenticated, user]);
+
+    loadFrameData();
+  }, [frameId, router]);
+
+  // Redirect if no frameId provided
+  useEffect(() => {
+    if (!loadingFrame && !frameId) {
+      router.push('/');
+    }
+  }, [frameId, loadingFrame, router]);
 
   // Start photobooth session
   const startSession = () => {
@@ -165,15 +241,20 @@ const PhotoboothPage = () => {
     setIsLoading(true);
 
     try {
-      let frameType = '2x1';
-      let dynamicFrameUrl = null;
-      if (selectedFrame) {
-        dynamicFrameUrl = selectedFrame?.image_url || selectedFrame?.url || null;
+      let resultUrl = null;
+
+      if (frameData) {
+        // Use frame data for processing
+        const frameUrl = frameData.thumbnail_url || frameData.thumbnail || frameData.image_url;
+        resultUrl = await createPhotoboothResult(photos, layout, frameUrl);
+      } else {
+        // Fallback to default frame
+        resultUrl = await createPhotoboothResult(photos, layout);
       }
-      const resultUrl = await createPhotoboothResult(photos, frameType, dynamicFrameUrl);
+
       setFinalResult(resultUrl);
       setStep('result');
-      
+
       // Play success sound and haptic feedback
       playSound('complete');
       triggerHapticFeedback('heavy');
@@ -182,6 +263,40 @@ const PhotoboothPage = () => {
       alert('Failed to process your photobooth result. Please try again.');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Save photo to backend
+  const savePhoto = async (photoUrl, title) => {
+    if (!isAuthenticated || !user?.username || !frameData) {
+      return;
+    }
+
+    try {
+      setSavingPhoto(true);
+
+      // Convert photo URL to blob
+      const response = await fetch(photoUrl);
+      const photoBlob = await response.blob();
+
+      // Create photo data
+      const photoData = {
+        images: [photoBlob],
+        frameId: frameData._id || frameData.id,
+        title: title,
+        desc: `Photobooth session with ${frameData.title || 'SnapLove Frame'}`
+      };
+
+      await userService.capturePhoto(user.username, photoData);
+
+      // Show success message
+      alert('Photo saved successfully!');
+
+    } catch (error) {
+      console.error('Error saving photo:', error);
+      alert('Failed to save photo. Please try again.');
+    } finally {
+      setSavingPhoto(false);
     }
   };
 
@@ -235,17 +350,22 @@ const PhotoboothPage = () => {
     };
   }, []);
 
-  // Helpers
-  const clearTimers = () => {
-    if (countdownIntervalRef.current) {
-      clearInterval(countdownIntervalRef.current);
-      countdownIntervalRef.current = null;
-    }
-    if (countdownTimeoutRef.current) {
-      clearTimeout(countdownTimeoutRef.current);
-      countdownTimeoutRef.current = null;
-    }
+  // Get TTL info based on user role
+  const getTTLInfo = () => {
+    if (!user?.role) return { days: 3, label: '3 days' };
+
+    const roleLimits = {
+      basic: { days: 3, label: '3 days' },
+      verified_basic: { days: 7, label: '7 days' },
+      verified_premium: { days: -1, label: 'Unlimited' },
+      official: { days: -1, label: 'Unlimited' },
+      developer: { days: -1, label: 'Unlimited' }
+    };
+
+    return roleLimits[user.role] || roleLimits.basic;
   };
+
+  const ttlInfo = getTTLInfo();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-cyan-50">
@@ -303,12 +423,12 @@ const PhotoboothPage = () => {
               <div className="mb-8">
                 <FiCamera className="h-16 w-16 mx-auto text-pink-500 mb-4" />
                 <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                  Get Ready for Your Photobooth Session!
+                  Photobooth Session
                 </h2>
                 <p className="text-gray-600 max-w-2xl mx-auto mb-6">
-                  We&apos;ll take 2 amazing photos. Choose a frame below or use the default SnapLove frame.
+                  Get ready to take {MAX_CAPTURES} amazing photos with the selected frame!
                 </p>
-                
+
                 <button
                   onClick={() => setShowInstructions(true)}
                   className="text-pink-600 hover:text-pink-700 font-medium underline mb-6"
@@ -317,34 +437,32 @@ const PhotoboothPage = () => {
                 </button>
               </div>
 
-              {/* Frame Selector */}
-              <div className="mb-8 text-left">
-                <h3 className="text-sm font-semibold text-gray-700 mb-2">Select Frame</h3>
-                <div className="grid grid-cols-2 gap-4 max-h-60 overflow-y-auto">
-                  {[...privateFrames.map(f => ({...f, scope:'private'})), ...publicFrames.map(f => ({...f, scope:'public'}))].map(frame => (
-                    <button
-                      type="button"
-                      key={`${frame.scope}-${frame.id || frame._id}`}
-                      onClick={() => setSelectedFrame(frame)}
-                      className={`border rounded-lg p-2 flex flex-col items-center gap-2 hover:border-pink-400 transition relative ${selectedFrame && (selectedFrame.id===frame.id || selectedFrame._id===frame._id) ? 'ring-2 ring-pink-500 border-pink-400' : 'border-gray-200'}`}
-                    >
-                      <div className="w-full aspect-[1/2] bg-gray-50 rounded-md overflow-hidden flex items-center justify-center text-xs text-gray-400">
-                        {frame.thumbnail_url || frame.image_url || frame.url ? (
-                          <img src={frame.thumbnail_url || frame.image_url || frame.url} alt={frame.title || 'Frame'} className="object-cover w-full h-full" />
-                        ) : 'No Preview'}
-                      </div>
-                      <span className="text-[11px] font-medium line-clamp-1 w-full">{frame.title || 'Untitled'}</span>
-                      <span className="absolute top-1 right-1 text-[10px] px-1.5 py-0.5 rounded bg-white/80 backdrop-blur text-gray-600 border border-gray-200">{frame.scope}</span>
-                    </button>
-                  ))}
-                </div>
-                {selectedFrame && (
-                  <div className="mt-3 text-xs text-gray-600 flex items-center justify-between">
-                    <span>Selected: <strong>{selectedFrame.title || 'Untitled'}</strong></span>
-                    <button type="button" onClick={() => setSelectedFrame(null)} className="text-pink-600 hover:underline">Reset</button>
+              {/* Frame Information */}
+              {frameData && (
+                <div className="mb-8 bg-gray-50 rounded-2xl p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Selected Frame</h3>
+                  <div className="flex items-center justify-center gap-6">
+                    <div className="relative w-24 h-36 bg-white rounded-lg overflow-hidden border-2 border-gray-200">
+                      <img
+                        src={frameData.thumbnail_url || frameData.thumbnail || frameData.image_url}
+                        alt={frameData.title || 'Frame'}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="text-left">
+                      <h4 className="font-bold text-lg text-gray-900">{frameData.title || frameTitle}</h4>
+                      <p className="text-gray-600">Layout: {layout.toUpperCase()}</p>
+                      <p className="text-gray-600">Photos needed: {MAX_CAPTURES}</p>
+                      {isAuthenticated && (
+                        <div className="flex items-center gap-2 mt-2 text-sm text-gray-600">
+                          <FiClock className="w-4 h-4" />
+                          <span>TTL: {ttlInfo.label}</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                )}
-              </div>
+                </div>
+              )}
 
               <div className="space-y-6">
                 {cameraReady ? (
@@ -393,7 +511,7 @@ const PhotoboothPage = () => {
               {/* Progress Indicator */}
               <div className="mb-8">
                 <div className="flex justify-center space-x-4 mb-4">
-                  {[0, 1].map((index) => (
+                  {Array.from({ length: MAX_CAPTURES }, (_, index) => (
                     <div
                       key={index}
                       className={`w-4 h-4 rounded-full transition-colors ${
@@ -407,7 +525,7 @@ const PhotoboothPage = () => {
                   ))}
                 </div>
                 <p className="text-gray-600">
-                  Photo {currentCapture + 1} of 2
+                  Photo {currentCapture + 1} of {MAX_CAPTURES}
                 </p>
               </div>
 
@@ -471,10 +589,10 @@ const PhotoboothPage = () => {
               <h2 className="text-3xl font-bold text-gray-900 mb-6">
                 Your Photobooth Result is Ready! 🎉
               </h2>
-              {selectedFrame && (
-                <p className="text-xs text-gray-500 mb-2">Frame: {selectedFrame.title || selectedFrame.name || 'Custom'} ({selectedFrame.scope})</p>
+              {frameData && (
+                <p className="text-xs text-gray-500 mb-2">Frame: {frameData.title || frameTitle}</p>
               )}
-              
+
               {/* Final Result Image */}
               <div className="mb-8">
                 <div className="relative mx-auto w-full max-w-sm">
@@ -486,27 +604,54 @@ const PhotoboothPage = () => {
                 </div>
               </div>
 
+              {/* TTL Information */}
+              {isAuthenticated && (
+                <div className="mb-6 bg-blue-50 border border-blue-200 rounded-xl p-4">
+                  <div className="flex items-center justify-center gap-2 text-blue-700">
+                    <FiClock className="w-5 h-5" />
+                    <span className="font-medium">
+                      Photo will be saved for: {ttlInfo.label}
+                    </span>
+                  </div>
+                </div>
+              )}
+
               {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <button
-                  onClick={downloadResult}
-                  className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-green-500 to-blue-600 text-white font-semibold rounded-xl hover:from-green-600 hover:to-blue-700 transition-all duration-300 shadow-lg hover:shadow-xl"
+                  onClick={() => downloadImage(finalResult, `snaplove-photobooth-${Date.now()}.jpg`)}
+                  className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-green-500 to-blue-600 text-white font-semibold rounded-xl hover:from-green-600 hover:to-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl"
                 >
                   <FiDownload className="h-5 w-5 mr-2" />
                   Download
                 </button>
-                
+
                 <button
-                  onClick={shareResult}
-                  className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-600 text-white font-semibold rounded-xl hover:from-purple-600 hover:to-pink-700 transition-all duration-300 shadow-lg hover:shadow-xl"
+                  onClick={() => shareImage(finalResult, 'My SnapLove Photobooth')}
+                  className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-600 text-white font-semibold rounded-xl hover:from-purple-600 hover:to-pink-700 transition-all duration-200 shadow-lg hover:shadow-xl"
                 >
                   <FiShare2 className="h-5 w-5 mr-2" />
                   Share
                 </button>
-                
+
+                {isAuthenticated && (
+                  <button
+                    onClick={() => savePhoto(finalResult, `Photobooth - ${frameData?.title || frameTitle}`)}
+                    disabled={savingPhoto}
+                    className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-xl hover:from-indigo-600 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50"
+                  >
+                    {savingPhoto ? (
+                      <FiLoader className="h-5 w-5 mr-2 animate-spin" />
+                    ) : (
+                      <FiCamera className="h-5 w-5 mr-2" />
+                    )}
+                    {savingPhoto ? 'Saving...' : 'Save Photo'}
+                  </button>
+                )}
+
                 <button
                   onClick={resetSession}
-                  className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-gray-500 to-gray-600 text-white font-semibold rounded-xl hover:from-gray-600 hover:to-gray-700 transition-all duration-300 shadow-lg hover:shadow-xl"
+                  className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-gray-500 to-gray-600 text-white font-semibold rounded-xl hover:from-gray-600 hover:to-gray-700 transition-all duration-200 shadow-lg hover:shadow-xl"
                 >
                   <FiRotateCcw className="h-5 w-5 mr-2" />
                   Take Another
