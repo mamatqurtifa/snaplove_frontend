@@ -1,8 +1,10 @@
+// reports/[id]/page.js
+
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { FaArrowLeft, FaCheck, FaTimes, FaExclamationTriangle, FaUser, FaImage, FaClock, FaFlag } from 'react-icons/fa';
+import { FaArrowLeft, FaCheck, FaTimes, FaExclamationTriangle, FaUser, FaImage, FaClock, FaFlag, FaTrash } from 'react-icons/fa';
 
 export default function ReportDetailPage({ params }) {
   const router = useRouter();
@@ -11,8 +13,9 @@ export default function ReportDetailPage({ params }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
-  const [adminNote, setAdminNote] = useState('');
+  const [adminResponse, setAdminResponse] = useState('');
   const [success, setSuccess] = useState('');
+  const [selectedAction, setSelectedAction] = useState('no_action');
   
   useEffect(() => {
     const fetchReportDetails = async () => {
@@ -36,8 +39,8 @@ export default function ReportDetailPage({ params }) {
         }
         
         const data = await response.json();
-        setReport(data.data.report);
-        setAdminNote(data.data.report.admin_note || '');
+        setReport(data.data.report || data.data);
+        setAdminResponse(data.data.report?.admin_response || data.data?.admin_response || '');
       } catch (err) {
         console.error('Error fetching report details:', err);
         setError(err.message);
@@ -49,7 +52,7 @@ export default function ReportDetailPage({ params }) {
     fetchReportDetails();
   }, [id]);
   
-  const handleActionSubmit = async (action) => {
+  const handleActionSubmit = async (status) => {
     try {
       setSubmitting(true);
       setSuccess('');
@@ -60,16 +63,23 @@ export default function ReportDetailPage({ params }) {
         throw new Error('Not authenticated');
       }
       
+      const requestBody = {
+        report_status: status,
+        admin_response: adminResponse
+      };
+      
+      // Only add action if status is 'done' and action is selected
+      if (status === 'done') {
+        requestBody.action = selectedAction;
+      }
+      
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/reports/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({
-          status: action,
-          admin_note: adminNote
-        })
+        body: JSON.stringify(requestBody)
       });
       
       if (!response.ok) {
@@ -77,8 +87,16 @@ export default function ReportDetailPage({ params }) {
       }
       
       const data = await response.json();
-      setReport(data.data.report);
-      setSuccess(`Report has been ${action === 'resolved' ? 'resolved' : 'rejected'} successfully`);
+      setReport(data.data.report || data.data);
+      
+      let actionText = '';
+      if (status === 'done') {
+        actionText = selectedAction === 'delete_frame' ? 'resolved and content deleted' : 'resolved with no action';
+      } else {
+        actionText = 'rejected';
+      }
+      
+      setSuccess(`Report has been ${actionText} successfully`);
       
       // Refresh the data after action
       setTimeout(() => {
@@ -86,7 +104,7 @@ export default function ReportDetailPage({ params }) {
       }, 2000);
       
     } catch (err) {
-      console.error(`Error ${action} report:`, err);
+      console.error(`Error updating report:`, err);
       setError(err.message);
     } finally {
       setSubmitting(false);
@@ -96,7 +114,7 @@ export default function ReportDetailPage({ params }) {
   const getStatusColor = (status) => {
     switch(status) {
       case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'resolved': return 'bg-green-100 text-green-800';
+      case 'done': return 'bg-green-100 text-green-800';
       case 'rejected': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
@@ -110,6 +128,15 @@ export default function ReportDetailPage({ params }) {
       case 'copyright': return 'bg-blue-100 text-blue-800';
       case 'other': return 'bg-gray-100 text-gray-800';
       default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+  
+  const getStatusText = (status) => {
+    switch(status) {
+      case 'done': return 'Done';
+      case 'pending': return 'Pending';
+      case 'rejected': return 'Rejected';
+      default: return status;
     }
   };
   
@@ -162,6 +189,13 @@ export default function ReportDetailPage({ params }) {
         </div>
       )}
       
+      {error && (
+        <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-md">
+          <p className="font-bold">Error:</p>
+          <p>{error}</p>
+        </div>
+      )}
+      
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Report Information */}
         <div className="lg:col-span-2">
@@ -169,7 +203,7 @@ export default function ReportDetailPage({ params }) {
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold">Report Information</h2>
               <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(report.status)}`}>
-                {report.status}
+                {getStatusText(report.status)}
               </span>
             </div>
             
@@ -200,22 +234,24 @@ export default function ReportDetailPage({ params }) {
                   <p className="text-sm text-gray-500">
                     {report.content_type} by @{report.content_owner}
                   </p>
-                  <a 
-                    href={report.content_url} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="mt-2 inline-block text-blue-600 hover:underline"
-                  >
-                    View Content
-                  </a>
+                  {report.content_url && (
+                    <a 
+                      href={report.content_url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="mt-2 inline-block text-blue-600 hover:underline"
+                    >
+                      View Content
+                    </a>
+                  )}
                 </div>
               </div>
             </div>
             
             {report.status !== 'pending' && (
               <div className="mb-4">
-                <div className="text-sm text-gray-500 mb-1">Admin Note</div>
-                <p className="text-gray-700 whitespace-pre-line">{report.admin_note || 'No notes provided'}</p>
+                <div className="text-sm text-gray-500 mb-1">Admin Response</div>
+                <p className="text-gray-700 whitespace-pre-line">{report.admin_response || 'No response provided'}</p>
               </div>
             )}
           </div>
@@ -226,15 +262,52 @@ export default function ReportDetailPage({ params }) {
               
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Admin Note
+                  Admin Response
                 </label>
                 <textarea
-                  value={adminNote}
-                  onChange={(e) => setAdminNote(e.target.value)}
+                  value={adminResponse}
+                  onChange={(e) => setAdminResponse(e.target.value)}
                   className="w-full p-2 border rounded-md"
                   rows={4}
-                  placeholder="Add notes about your decision (optional)"
+                  placeholder="Add your response about this report (optional)"
                 ></textarea>
+              </div>
+              
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Action to Take (if resolving)
+                </label>
+                <div className="space-y-2">
+                  <div className="flex items-center">
+                    <input
+                      type="radio"
+                      id="no_action"
+                      name="action"
+                      value="no_action"
+                      checked={selectedAction === 'no_action'}
+                      onChange={(e) => setSelectedAction(e.target.value)}
+                      className="mr-2"
+                    />
+                    <label htmlFor="no_action" className="text-sm text-gray-700">
+                      No action needed - Report is invalid or content is acceptable
+                    </label>
+                  </div>
+                  <div className="flex items-center">
+                    <input
+                      type="radio"
+                      id="delete_frame"
+                      name="action"
+                      value="delete_frame"
+                      checked={selectedAction === 'delete_frame'}
+                      onChange={(e) => setSelectedAction(e.target.value)}
+                      className="mr-2"
+                    />
+                    <label htmlFor="delete_frame" className="text-sm text-gray-700 flex items-center">
+                      <FaTrash className="mr-1 text-red-500" />
+                      Delete content - Report is valid and content violates policies
+                    </label>
+                  </div>
+                </div>
               </div>
               
               <div className="flex justify-end space-x-4">
@@ -247,20 +320,23 @@ export default function ReportDetailPage({ params }) {
                   Reject Report
                 </button>
                 <button
-                  onClick={() => handleActionSubmit('resolved')}
+                  onClick={() => handleActionSubmit('done')}
                   className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center"
                   disabled={submitting}
                 >
                   <FaCheck className="mr-2" />
-                  Resolve Report
+                  {selectedAction === 'delete_frame' ? 'Resolve & Delete Content' : 'Resolve Report'}
                 </button>
               </div>
               
               <div className="mt-4 text-sm text-gray-500">
                 <FaExclamationTriangle className="inline-block mr-1 text-yellow-500" />
                 <span>
-                  Resolving the report will flag the content for review and potential removal. 
-                  Rejecting means no action will be taken on the reported content.
+                  {selectedAction === 'delete_frame' 
+                    ? 'Resolving with delete action will remove the reported content permanently.'
+                    : 'Resolving with no action means the report is handled but content remains.'
+                  }
+                  {' '}Rejecting means the report is invalid and no action is needed.
                 </span>
               </div>
             </div>
@@ -291,7 +367,7 @@ export default function ReportDetailPage({ params }) {
               
               <div className="flex items-center text-gray-600">
                 <FaFlag className="mr-3" />
-                <span>Previous Reports: <span className="font-medium">{report.reporter_report_count}</span></span>
+                <span>Previous Reports: <span className="font-medium">{report.reporter_report_count || 0}</span></span>
               </div>
             </div>
           </div>
@@ -301,7 +377,7 @@ export default function ReportDetailPage({ params }) {
             <div className="space-y-3">
               <div className="flex items-center text-gray-600">
                 <FaFlag className="mr-3" />
-                <span>Report ID: <span className="font-medium">{report.id}</span></span>
+                <span>Report ID: <span className="font-medium text-xs">{report.id}</span></span>
               </div>
               
               <div className="flex items-center text-gray-600">

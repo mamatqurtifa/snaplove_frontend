@@ -1,3 +1,5 @@
+// reports/page.js
+
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -55,8 +57,15 @@ export default function ReportsPage() {
       }
       
       const data = await response.json();
-      setReports(data.data.reports);
-      setPagination(data.data.pagination);
+      setReports(data.data.reports || data.data || []);
+      setPagination(data.data.pagination || data.pagination || {
+        current_page: 1,
+        total_pages: 1,
+        total_items: 0,
+        items_per_page: 20,
+        has_next_page: false,
+        has_prev_page: false
+      });
     } catch (err) {
       console.error('Error fetching reports:', err);
       setError(err.message);
@@ -81,7 +90,7 @@ export default function ReportsPage() {
   const getStatusColor = (status) => {
     switch(status) {
       case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'resolved': return 'bg-green-100 text-green-800';
+      case 'done': return 'bg-green-100 text-green-800';
       case 'rejected': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
@@ -95,6 +104,15 @@ export default function ReportsPage() {
       case 'copyright': return 'bg-blue-100 text-blue-800';
       case 'other': return 'bg-gray-100 text-gray-800';
       default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+  
+  const getStatusText = (status) => {
+    switch(status) {
+      case 'done': return 'Done';
+      case 'pending': return 'Pending';
+      case 'rejected': return 'Rejected';
+      default: return status;
     }
   };
   
@@ -139,7 +157,7 @@ export default function ReportsPage() {
             >
               <option value="">All Status</option>
               <option value="pending">Pending</option>
-              <option value="resolved">Resolved</option>
+              <option value="done">Done</option>
               <option value="rejected">Rejected</option>
             </select>
             
@@ -222,7 +240,7 @@ export default function ReportsPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(report.status)}`}>
-                          {report.status}
+                          {getStatusText(report.status)}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
