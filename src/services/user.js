@@ -83,5 +83,50 @@ export const userService = {
   deletePhoto: async (username, photoId) => {
     const { data } = await api.delete(`user/${username}/photo/private/${photoId}/delete`);
     return data;
+  },
+
+  // Social features
+  getFollowers: async (username, params = {}) => {
+    const queryParams = new URLSearchParams();
+    if (params.page) queryParams.append('page', params.page);
+    if (params.limit) queryParams.append('limit', params.limit);
+    if (params.search) queryParams.append('search', params.search);
+
+    const query = queryParams.toString();
+    const { data } = await api.get(`user/${username}/follower${query ? `?${query}` : ''}`);
+    return data;
+  },
+
+  getFollowing: async (username, params = {}) => {
+    const queryParams = new URLSearchParams();
+    if (params.page) queryParams.append('page', params.page);
+    if (params.limit) queryParams.append('limit', params.limit);
+    if (params.search) queryParams.append('search', params.search);
+
+    const query = queryParams.toString();
+    const { data } = await api.get(`user/${username}/following${query ? `?${query}` : ''}`);
+    return data;
+  },
+
+  followUser: async (username, targetUsername) => {
+    const { data } = await api.post(`user/${username}/following`, {
+      following_username: targetUsername
+    });
+    return data;
+  },
+
+  unfollowUser: async (username, followingId) => {
+    const { data } = await api.delete(`user/${username}/following/${followingId}`);
+    return data;
+  },
+
+  checkFollowStatus: async (username, targetUsername) => {
+    const { data } = await api.get(`user/${username}/following/check/${targetUsername}`);
+    return data;
+  },
+
+  removeFollower: async (username, followerId) => {
+    const { data } = await api.delete(`user/${username}/follower/${followerId}`);
+    return data;
   }
 };

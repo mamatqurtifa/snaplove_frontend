@@ -3,9 +3,11 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import Image from 'next/image';
-import { FiSettings, FiUser, FiMail, FiCalendar, FiImage, FiX, FiSave, FiEdit3 } from 'react-icons/fi';
+import { FiSettings, FiUser, FiMail, FiCalendar, FiImage, FiX, FiSave, FiEdit3, FiGrid, FiHeart, FiUsers } from 'react-icons/fi';
 import api from '@/services/api';
 import RoleBadge from '@/components/ui/RoleBadge';
+import FrameManagement from '@/components/profile/FrameManagement';
+import FollowersFollowing from '@/components/profile/FollowersFollowing';
 
 export default function Profile() {
   const { user, loading, isAuthenticated, refreshUser } = useAuth();
@@ -20,6 +22,7 @@ export default function Profile() {
   const [saving, setSaving] = useState(false);
   const [userStats, setUserStats] = useState(null);
   const [statsLoading, setStatsLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('frames');
   const router = useRouter();
   
   useEffect(() => {
@@ -267,75 +270,103 @@ export default function Profile() {
             <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="flex items-center gap-3 text-gray-700">
                 <div className="p-2 bg-[#FFE99A]/20 rounded-full">
-                  <FiUser className="h-5 w-5 text-[#FF9898]" />
+                  <FiUsers className="h-5 w-5 text-[#FF9898]" />
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Following</p>
-                  <p className="font-medium">{userStats?.following_count || 0}</p>
+                  <p className="font-medium">{userStats?.social_stats?.following || 0}</p>
                 </div>
               </div>
               
               <div className="flex items-center gap-3 text-gray-700">
                 <div className="p-2 bg-[#FFE99A]/20 rounded-full">
-                  <FiUser className="h-5 w-5 text-[#FF9898]" />
+                  <FiUsers className="h-5 w-5 text-[#FF9898]" />
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Followers</p>
-                  <p className="font-medium">{userStats?.followers_count || 0}</p>
+                  <p className="font-medium">{userStats?.social_stats?.followers || 0}</p>
                 </div>
               </div>
               
               <div className="flex items-center gap-3 text-gray-700">
                 <div className="p-2 bg-[#FFE99A]/20 rounded-full">
-                  <FiCalendar className="h-5 w-5 text-[#FF9898]" />
+                  <FiGrid className="h-5 w-5 text-[#FF9898]" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Member Since</p>
-                  <p className="font-medium">
-                    {user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    }) : '-'}
-                  </p>
+                  <p className="text-sm text-gray-500">Total Frames</p>
+                  <p className="font-medium">{userStats?.public_frames?.total_approved || 0}</p>
                 </div>
               </div>
             </div>
           </div>
         </div>
         
-        {/* Stats Cards */}
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-800">Total Score</h3>
-            <p className="text-3xl font-bold mt-2 text-blue-600">
-              {statsLoading ? '...' : (userStats?.total_score || 0)}
-            </p>
-            <p className="text-sm text-gray-500 mt-1">Combined ranking score</p>
+        {/* Content Tabs */}
+        <div className="mt-8 bg-white rounded-2xl shadow-md overflow-hidden">
+          {/* Tab Navigation */}
+          <div className="flex border-b border-gray-200">
+            <button
+              className={`py-4 px-6 text-sm font-medium flex items-center gap-2 ${
+                activeTab === 'frames'
+                  ? 'border-b-2 border-[#FF9898] text-[#FF9898]'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+              onClick={() => setActiveTab('frames')}
+            >
+              <FiGrid className="h-4 w-4" />
+              My Frames
+            </button>
+            <button
+              className={`py-4 px-6 text-sm font-medium flex items-center gap-2 ${
+                activeTab === 'liked'
+                  ? 'border-b-2 border-[#FF9898] text-[#FF9898]'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+              onClick={() => setActiveTab('liked')}
+            >
+              <FiHeart className="h-4 w-4" />
+              Liked Frames
+            </button>
+            <button
+              className={`py-4 px-6 text-sm font-medium flex items-center gap-2 ${
+                activeTab === 'followers'
+                  ? 'border-b-2 border-[#FF9898] text-[#FF9898]'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+              onClick={() => setActiveTab('followers')}
+            >
+              <FiUsers className="h-4 w-4" />
+              Followers ({userStats?.social_stats?.followers || 0})
+            </button>
+            <button
+              className={`py-4 px-6 text-sm font-medium flex items-center gap-2 ${
+                activeTab === 'following'
+                  ? 'border-b-2 border-[#FF9898] text-[#FF9898]'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+              onClick={() => setActiveTab('following')}
+            >
+              <FiUsers className="h-4 w-4" />
+              Following ({userStats?.social_stats?.following || 0})
+            </button>
           </div>
-          
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-800">Frames</h3>
-            <p className="text-3xl font-bold mt-2 text-[#FF9898]">
-              {statsLoading ? '...' : (userStats?.frame_count || 0)}
-            </p>
-            <p className="text-sm text-gray-500 mt-1">Total frames created</p>
-          </div>
-          
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-800">Likes</h3>
-            <p className="text-3xl font-bold mt-2 text-pink-600">
-              {statsLoading ? '...' : (userStats?.total_likes || 0)}
-            </p>
-            <p className="text-sm text-gray-500 mt-1">Total likes received</p>
-          </div>
-          
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-800">Uses</h3>
-            <p className="text-3xl font-bold mt-2 text-green-600">
-              {statsLoading ? '...' : (userStats?.total_uses || 0)}
-            </p>
-            <p className="text-sm text-gray-500 mt-1">Total frame uses</p>
+
+          {/* Tab Content */}
+          <div className="p-6">
+            {activeTab === 'frames' && (
+              <FrameManagement username={user?.username} />
+            )}
+            {activeTab === 'liked' && (
+              <div className="text-center text-gray-500 py-10">
+                Liked frames feature coming soon...
+              </div>
+            )}
+            {activeTab === 'followers' && (
+              <FollowersFollowing username={user?.username} type="followers" />
+            )}
+            {activeTab === 'following' && (
+              <FollowersFollowing username={user?.username} type="following" />
+            )}
           </div>
         </div>
       </div>
