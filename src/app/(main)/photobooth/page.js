@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { FiCamera, FiRotateCcw, FiDownload, FiShare2, FiHome, FiPlay, FiX, FiClock, FiLoader } from 'react-icons/fi';
 import Image from 'next/image';
@@ -53,7 +53,8 @@ const shareImage = async (imageUrl, title) => {
   }
 };
 
-const PhotoboothPage = () => {
+// Component yang menggunakan useSearchParams
+const PhotoboothContent = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { user, isAuthenticated } = useAuth();
@@ -662,6 +663,25 @@ const PhotoboothPage = () => {
         )}
       </div>
     </div>
+  );
+};
+
+// Loading component untuk suspense fallback
+const PhotoboothLoading = () => (
+  <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-cyan-50 flex items-center justify-center">
+    <div className="text-center">
+      <FiLoader className="w-8 h-8 animate-spin mx-auto mb-4 text-pink-500" />
+      <p className="text-gray-600">Loading photobooth...</p>
+    </div>
+  </div>
+);
+
+// Main component dengan Suspense wrapper
+const PhotoboothPage = () => {
+  return (
+    <Suspense fallback={<PhotoboothLoading />}>
+      <PhotoboothContent />
+    </Suspense>
   );
 };
 
