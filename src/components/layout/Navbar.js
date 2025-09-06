@@ -311,6 +311,14 @@ const Navbar = () => {
   // Check if user has admin role
   const isAdmin = user?.role && (user.role.toLowerCase().includes('official') || user.role.toLowerCase().includes('developer'));
 
+  // Navigation items with their respective routes
+  const navItems = [
+    { name: "Discover", route: "/discover" },
+    { name: "Leaderboard", route: "/leaderboard" },
+    { name: "Pricing", route: "/pricing" },
+    { name: "Help Center", route: "/tickets" }
+  ];
+
   return (
     <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${
       scrolled ? "bg-white/90 backdrop-blur-md shadow-md py-2" : "bg-transparent py-4"
@@ -329,10 +337,10 @@ const Navbar = () => {
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center space-x-8">
-          {["Discover", "Leaderboard", "Pricing", "Help Center"].map((item, index) => (
-            <Link key={index} href={`/${item.toLowerCase().replace(" ", "-")}`} className="nav-link group">
+          {navItems.map((item, index) => (
+            <Link key={index} href={item.route} className="nav-link group">
               <span className="relative overflow-hidden">
-                {item}
+                {item.name}
                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#FF9898] transition-all duration-300 group-hover:w-full"></span>
               </span>
             </Link>
@@ -504,14 +512,14 @@ const Navbar = () => {
             </div>
           )}
           
-          {["Discover", "Leaderboard", "Pricing", "Help Center"].map((item, index) => (
+          {navItems.map((item, index) => (
             <Link 
               key={index}
-              href={`/${item.toLowerCase().replace(" ", "-")}`} 
+              href={item.route} 
               className="text-lg font-medium text-gray-700 hover:text-[#FF9898] transition-colors"
               onClick={() => setIsMenuOpen(false)}
             >
-              {item}
+              {item.name}
             </Link>
           ))}
           
