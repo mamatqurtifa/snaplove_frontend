@@ -26,7 +26,7 @@ const UploadFrameCTA = () => {
   }, []);
   
   return (
-    <section className="section-padding bg-gradient-to-br from-[#FFF8F8] to-white relative overflow-hidden">
+    <section className="section-padding bg-gradient-to-br from-[#F8F9FF] to-[#FFF8F8] relative overflow-hidden">
       {/* Decorative elements - lower z-index */}
       <div className="absolute top-20 left-0 w-64 h-64 bg-[#FFE99A]/30 rounded-full blur-3xl -z-10"></div>
       <div className="absolute bottom-20 right-0 w-72 h-72 bg-[#C9A7FF]/20 rounded-full blur-3xl -z-10"></div>

@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { FiHeart, FiDownload, FiEye, FiUser } from "react-icons/fi";
+import Link from "next/link";
+import { FiHeart, FiDownload, FiEye } from "react-icons/fi";
 
 const TrendingFrames = () => {
   const [activeCategory, setActiveCategory] = useState("All");
@@ -97,7 +98,11 @@ const TrendingFrames = () => {
     : frames.filter(frame => frame.category === activeCategory);
 
   return (
-    <section className="section-padding bg-white">
+    <section className="section-padding bg-gradient-to-br from-white to-[#F8F9FF] relative">
+      {/* Subtle decorative elements */}
+      <div className="absolute top-1/4 right-0 w-48 h-48 bg-[#C9A7FF]/10 rounded-full blur-3xl -z-10"></div>
+      <div className="absolute bottom-1/3 left-0 w-56 h-56 bg-[#FFE99A]/15 rounded-full blur-3xl -z-10"></div>
+      
       <div className="container-custom">
         <div className="text-center max-w-3xl mx-auto mb-16 opacity-0 translate-y-10 transition-all duration-1000 animate-on-scroll">
           <h2 className="text-3xl md:text-4xl font-bold mb-6">
@@ -118,10 +123,10 @@ const TrendingFrames = () => {
           {categories.map((category, index) => (
             <button
               key={index}
-              className={`category-pill px-6 py-2 ${
+              className={`px-6 py-3 rounded-full font-medium transition-all duration-300 ${
                 activeCategory === category
-                  ? "bg-[#FF9898] text-white shadow-md"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  ? "bg-[#FF9898] text-white shadow-lg shadow-[#FF9898]/25 scale-105"
+                  : "bg-white text-gray-700 hover:bg-gray-50 hover:shadow-md border border-gray-200"
               }`}
               onClick={() => setActiveCategory(category)}
             >
@@ -135,67 +140,78 @@ const TrendingFrames = () => {
           {filteredFrames.map((frame, index) => (
             <div 
               key={frame.id}
-              className={`frame-card opacity-0 translate-y-10 transition-all duration-1000 delay-${index * 100} animate-on-scroll`}
+              className={`bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 opacity-0 translate-y-10 animate-on-scroll group`}
+              style={{ transitionDelay: `${index * 100}ms` }}
             >
-              <div className="photo-frame mb-4 overflow-hidden">
+              <div className="relative overflow-hidden">
                 <Image
                   src={frame.image}
                   alt={frame.title}
                   width={400}
-                  height={500}
-                  className="w-full h-64 object-cover"
+                  height={300}
+                  className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-500"
                 />
                 <div className="absolute top-3 right-3">
-                  <span className="tag bg-[#FF9898]/90 text-white backdrop-blur-sm">
+                  <span className="bg-[#FF9898]/90 text-white text-xs font-medium px-3 py-1 rounded-full backdrop-blur-sm">
                     {frame.category}
                   </span>
                 </div>
+                {/* Hover overlay */}
+                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </div>
               
-              <h3 className="text-xl font-bold mb-2">{frame.title}</h3>
-              
-              <div className="flex justify-between items-center mb-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-full overflow-hidden">
-                    <Image
-                      src={frame.avatarUrl}
-                      alt={frame.creator}
-                      width={24}
-                      height={24}
-                      className="w-full h-full object-cover"
-                    />
+              <div className="p-6">
+                <h3 className="text-xl font-bold mb-3 group-hover:text-[#FF9898] transition-colors duration-300">
+                  {frame.title}
+                </h3>
+                
+                <div className="flex justify-between items-center mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full overflow-hidden ring-2 ring-gray-100">
+                      <Image
+                        src={frame.avatarUrl}
+                        alt={frame.creator}
+                        width={32}
+                        height={32}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <span className="text-sm text-gray-600 font-medium">@{frame.creator}</span>
                   </div>
-                  <span className="text-sm text-gray-600">@{frame.creator}</span>
+                  
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-1 text-sm text-gray-500">
+                      <FiHeart className="h-4 w-4 text-[#FF9898]" />
+                      <span className="font-medium">{frame.likes.toLocaleString()}</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-sm text-gray-500">
+                      <FiDownload className="h-4 w-4 text-[#C9A7FF]" />
+                      <span className="font-medium">{frame.downloads.toLocaleString()}</span>
+                    </div>
+                  </div>
                 </div>
                 
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-1 text-sm text-gray-600">
-                    <FiHeart className="h-4 w-4 text-[#FF9898]" />
-                    <span>{frame.likes}</span>
-                  </div>
-                  <div className="flex items-center gap-1 text-sm text-gray-600">
-                    <FiDownload className="h-4 w-4 text-[#C9A7FF]" />
-                    <span>{frame.downloads}</span>
-                  </div>
+                <div className="flex gap-3">
+                  <button className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all duration-300">
+                    <FiEye className="h-4 w-4" /> 
+                    Preview
+                  </button>
+                  <button className="flex-1 bg-gradient-to-r from-[#FF9898] to-[#FF7B7B] hover:from-[#FF7B7B] hover:to-[#FF9898] text-white font-medium py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 shadow-lg shadow-[#FF9898]/25">
+                    <FiDownload className="h-4 w-4" /> 
+                    Use
+                  </button>
                 </div>
-              </div>
-              
-              <div className="flex gap-2">
-                <button className="btn-outline flex-1 py-2 flex items-center justify-center gap-1">
-                  <FiEye className="h-4 w-4" /> Preview
-                </button>
-                <button className="btn-primary flex-1 py-2 flex items-center justify-center gap-1">
-                  <FiDownload className="h-4 w-4" /> Use
-                </button>
               </div>
             </div>
           ))}
         </div>
         
-        <div className="text-center mt-12 opacity-0 translate-y-10 transition-all duration-1000 delay-600 animate-on-scroll">
-          <button className="btn-secondary px-8">
-            View All Frames
-          </button>
+        <div className="text-center mt-16 opacity-0 translate-y-10 transition-all duration-1000 delay-600 animate-on-scroll">
+          <Link href="/discover">
+            <button className="bg-gradient-to-r from-[#C9A7FF] to-[#B794F6] hover:from-[#B794F6] hover:to-[#C9A7FF] text-white font-semibold py-4 px-12 rounded-full transition-all duration-300 shadow-lg shadow-[#C9A7FF]/25 hover:shadow-xl hover:shadow-[#C9A7FF]/30 hover:-translate-y-1">
+              View All Frames
+            </button>
+          </Link>
         </div>
       </div>
     </section>
