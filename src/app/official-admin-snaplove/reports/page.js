@@ -11,6 +11,7 @@ export default function ReportsPage() {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [statistics, setStatistics] = useState(null);
   const [pagination, setPagination] = useState({
     current_page: 1,
     total_pages: 1,
@@ -57,8 +58,13 @@ export default function ReportsPage() {
       }
       
       const data = await response.json();
-      setReports(data.data.reports || data.data || []);
-      setPagination(data.data.pagination || data.pagination || {
+      
+      if (!data.success) {
+        throw new Error('API request failed');
+      }
+      
+      setReports(data.data.reports || []);
+      setPagination(data.data.pagination || {
         current_page: 1,
         total_pages: 1,
         total_items: 0,
@@ -66,6 +72,8 @@ export default function ReportsPage() {
         has_next_page: false,
         has_prev_page: false
       });
+      setStatistics(data.data.statistics || null);
+      
     } catch (err) {
       console.error('Error fetching reports:', err);
       setError(err.message);
@@ -112,13 +120,59 @@ export default function ReportsPage() {
       case 'done': return 'Done';
       case 'pending': return 'Pending';
       case 'rejected': return 'Rejected';
-      default: return status;
+      default: return status || 'Unknown';
     }
+  };
+
+  // Helper function to get report ID safely
+  const getReportId = (report) => {
+    const id = report?.id;
+    if (!id) return 'N/A';
+    return typeof id === 'string' && id.length > 8 ? `${id.substring(0, 8)}...` : id;
+  };
+
+  // Safe function to format report type
+  const formatReportType = (type) => {
+    if (!type || typeof type !== 'string') return 'Unknown';
+    return type.replace(/_/g, ' ');
+  };
+
+  // Safe function to get frame images
+  const getFrameImage = (frame) => {
+    if (!frame) return "https://via.placeholder.com/40";
+    if (frame.images && Array.isArray(frame.images) && frame.images.length > 0) {
+      return frame.images[0];
+    }
+    return "https://via.placeholder.com/40";
   };
   
   return (
     <div className="container mx-auto px-4">
-      <h1 className="text-2xl font-bold mb-6">Content Reports</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Content Reports</h1>
+        
+        {/* Statistics Cards */}
+        {statistics && (
+          <div className="flex gap-4">
+            <div className="bg-yellow-100 px-4 py-2 rounded-lg">
+              <div className="text-sm text-yellow-800">Pending</div>
+              <div className="text-xl font-bold text-yellow-900">{statistics.pending || 0}</div>
+            </div>
+            <div className="bg-green-100 px-4 py-2 rounded-lg">
+              <div className="text-sm text-green-800">Done</div>
+              <div className="text-xl font-bold text-green-900">{statistics.done || 0}</div>
+            </div>
+            <div className="bg-red-100 px-4 py-2 rounded-lg">
+              <div className="text-sm text-red-800">Rejected</div>
+              <div className="text-xl font-bold text-red-900">{statistics.rejected || 0}</div>
+            </div>
+            <div className="bg-blue-100 px-4 py-2 rounded-lg">
+              <div className="text-sm text-blue-800">Total</div>
+              <div className="text-xl font-bold text-blue-900">{statistics.total || 0}</div>
+            </div>
+          </div>
+        )}
+      </div>
       
       {/* Search and Filter */}
       <div className="bg-white p-4 rounded-lg shadow-md mb-6">
@@ -127,7 +181,7 @@ export default function ReportsPage() {
             <div className="relative">
               <input
                 type="text"
-                placeholder="Search by content title or reporter"
+                placeholder="Search by title or reporter name"
                 className="w-full p-2 pl-10 border rounded-lg"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -139,6 +193,17 @@ export default function ReportsPage() {
           <div className="flex flex-wrap gap-2">
             <select 
               className="p-2 border rounded-lg"
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+            >
+              <option value="">All Status</option>
+              <option value="pending">Pending</option>
+              <option value="done">Done</option>
+              <option value="rejected">Rejected</option>
+            </select>
+            
+            <select 
+              className="p-2 border rounded-lg"
               value={reportType}
               onChange={(e) => setReportType(e.target.value)}
             >
@@ -148,17 +213,6 @@ export default function ReportsPage() {
               <option value="harassment">Harassment</option>
               <option value="copyright">Copyright</option>
               <option value="other">Other</option>
-            </select>
-            
-            <select 
-              className="p-2 border rounded-lg"
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-            >
-              <option value="">All Status</option>
-              <option value="pending">Pending</option>
-              <option value="done">Done</option>
-              <option value="rejected">Rejected</option>
             </select>
             
             <select 
@@ -199,9 +253,9 @@ export default function ReportsPage() {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Content</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Report Details</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Frame</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reporter</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
@@ -212,44 +266,71 @@ export default function ReportsPage() {
                   reports.map((report) => (
                     <tr key={report.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {report.id.substring(0, 8)}...
+                        {getReportId(report)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">
+                          {report?.title || 'Untitled Report'}
+                        </div>
+                        <div className="text-xs text-gray-500 max-w-xs truncate">
+                          {report?.description || 'No description'}
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-10 w-10">
                             <img 
                               className="h-10 w-10 rounded-md object-cover" 
-                              src={report.content_thumbnail || "https://via.placeholder.com/40"} 
+                              src={getFrameImage(report?.frame)} 
                               alt="" 
                             />
                           </div>
                           <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">{report.content_title}</div>
-                            <div className="text-xs text-gray-500">{report.content_type} by @{report.content_owner}</div>
+                            <div className="text-sm font-medium text-gray-900">
+                              {report?.frame?.title || 'Unknown Frame'}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {report?.frame?.layout_type || 'Unknown'} by @{report?.frame?.owner?.username || 'unknown'}
+                            </div>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{report.reporter_name}</div>
-                        <div className="text-xs text-gray-500">@{report.reporter_username}</div>
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 h-8 w-8">
+                            <img 
+                              className="h-8 w-8 rounded-full object-cover" 
+                              src={report?.reporter?.image_profile || "https://via.placeholder.com/32"} 
+                              alt="" 
+                            />
+                          </div>
+                          <div className="ml-3">
+                            <div className="text-sm font-medium text-gray-900">
+                              {report?.reporter?.name || 'Unknown Reporter'}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              @{report?.reporter?.username || 'unknown'}
+                            </div>
+                          </div>
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getTypeColor(report.type)}`}>
-                          {report.type.replace(/_/g, ' ')}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(report.status)}`}>
-                          {getStatusText(report.status)}
+                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(report?.report_status)}`}>
+                          {getStatusText(report?.report_status)}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(report.created_at).toLocaleDateString()}
+                        {report?.created_at ? new Date(report.created_at).toLocaleDateString('id-ID', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric'
+                        }) : 'Unknown Date'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <button 
-                          onClick={() => handleViewReport(report.id)}
+                          onClick={() => handleViewReport(report?.id)}
                           className="text-blue-600 hover:text-blue-900 mr-3"
+                          disabled={!report?.id}
                         >
                           <FaEye />
                         </button>
@@ -282,6 +363,9 @@ export default function ReportsPage() {
               >
                 Previous
               </button>
+              <span className="px-4 py-2 text-sm text-gray-700">
+                Page {pagination.current_page} of {pagination.total_pages}
+              </span>
               <button 
                 onClick={() => fetchReports(pagination.current_page + 1)}
                 disabled={!pagination.has_next_page}

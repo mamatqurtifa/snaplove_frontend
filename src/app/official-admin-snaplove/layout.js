@@ -17,31 +17,50 @@ export default function AdminLayout({ children }) {
         const token = localStorage.getItem('token');
         
         if (!token) {
-          router.push('/login');
+          router.push('/auth/login');
           return;
         }
         
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/profile`, {
+        // Use the correct endpoint
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
         });
         
         if (!response.ok) {
-          throw new Error('Not authorized');
+          // If unauthorized, redirect to login
+          if (response.status === 401) {
+            localStorage.removeItem('token'); // Clear invalid token
+            router.push('/auth/login');
+            return;
+          }
+          throw new Error(`HTTP ${response.status}: Not authorized`);
         }
         
         const userData = await response.json();
         
-        if (!['official', 'developer'].includes(userData.data.user.role)) {
+        // Check if response is successful and has the expected structure
+        if (!userData.success || !userData.data?.user) {
+          throw new Error('Invalid response structure');
+        }
+        
+        const currentUser = userData.data.user;
+        
+        // Check for admin permissions using the permissions object
+        const hasAdminAccess = userData.data.permissions?.is_admin || 
+                              ['official', 'developer'].includes(currentUser.role);
+        
+        if (!hasAdminAccess) {
           router.push('/');
           return;
         }
         
-        setUser(userData.data.user);
+        setUser(currentUser);
       } catch (error) {
         console.error('Auth error:', error);
-        router.push('/login');
+        localStorage.removeItem('token'); // Clear token on error
+        router.push('/auth/login');
       } finally {
         setLoading(false);
       }
@@ -52,7 +71,7 @@ export default function AdminLayout({ children }) {
   
   const handleLogout = () => {
     localStorage.removeItem('token');
-    router.push('/login');
+    router.push('/auth/login');
   };
   
   if (loading) {
@@ -61,6 +80,11 @@ export default function AdminLayout({ children }) {
         <div className="w-16 h-16 border-t-4 border-blue-500 border-solid rounded-full animate-spin"></div>
       </div>
     );
+  }
+
+  // If no user after loading, don't render anything (redirect is happening)
+  if (!user) {
+    return null;
   }
   
   return (
@@ -87,8 +111,8 @@ export default function AdminLayout({ children }) {
                 className="w-10 h-10 rounded-full object-cover"
               />
               <div className="ml-3">
-                <p className="font-medium text-gray-800">{user?.name}</p>
-                <p className="text-sm text-gray-500">{user?.role}</p>
+                <p className="font-medium text-gray-800">{user?.name || 'Unknown User'}</p>
+                <p className="text-sm text-gray-500">{user?.role || 'user'}</p>
               </div>
             </div>
           </div>
