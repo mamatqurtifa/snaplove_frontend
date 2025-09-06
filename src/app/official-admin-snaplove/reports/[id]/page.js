@@ -1,4 +1,4 @@
-// reports/[id]/page.js
+// /src/app/official-admin-snaplove/reports/[id]/page.js
 
 'use client';
 import { useState, useEffect, use } from 'react';
