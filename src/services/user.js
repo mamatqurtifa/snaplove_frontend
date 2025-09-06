@@ -37,5 +37,96 @@ export const userService = {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
     return data;
+  },
+
+  // Photo management methods
+  capturePhoto: async (username, { images, frameId, title, desc }) => {
+    const formData = new FormData();
+    formData.append('frame_id', frameId);
+    formData.append('title', title);
+    if (desc) formData.append('desc', desc);
+
+    // Add images
+    images.forEach((imageBlob, index) => {
+      formData.append('images', imageBlob, `photo-${index + 1}.jpg`);
+    });
+
+    const { data } = await api.post(`user/${username}/photo/capture`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return data;
+  },
+
+  getPrivatePhotos: async (username, params = {}) => {
+    const queryParams = new URLSearchParams();
+    if (params.page) queryParams.append('page', params.page);
+    if (params.limit) queryParams.append('limit', params.limit);
+
+    const query = queryParams.toString();
+    const { data } = await api.get(`user/${username}/photo/private${query ? `?${query}` : ''}`);
+    return data;
+  },
+
+  getPhotoDetails: async (username, photoId) => {
+    const { data } = await api.get(`user/${username}/photo/private/${photoId}`);
+    return data;
+  },
+
+  updatePhoto: async (username, photoId, { title, desc }) => {
+    const { data } = await api.put(`user/${username}/photo/private/${photoId}/edit`, {
+      title,
+      desc
+    });
+    return data;
+  },
+
+  deletePhoto: async (username, photoId) => {
+    const { data } = await api.delete(`user/${username}/photo/private/${photoId}/delete`);
+    return data;
+  },
+
+  // Social features
+  getFollowers: async (username, params = {}) => {
+    const queryParams = new URLSearchParams();
+    if (params.page) queryParams.append('page', params.page);
+    if (params.limit) queryParams.append('limit', params.limit);
+    if (params.search) queryParams.append('search', params.search);
+
+    const query = queryParams.toString();
+    const { data } = await api.get(`user/${username}/follower${query ? `?${query}` : ''}`);
+    return data;
+  },
+
+  getFollowing: async (username, params = {}) => {
+    const queryParams = new URLSearchParams();
+    if (params.page) queryParams.append('page', params.page);
+    if (params.limit) queryParams.append('limit', params.limit);
+    if (params.search) queryParams.append('search', params.search);
+
+    const query = queryParams.toString();
+    const { data } = await api.get(`user/${username}/following${query ? `?${query}` : ''}`);
+    return data;
+  },
+
+  followUser: async (username, targetUsername) => {
+    const { data } = await api.post(`user/${username}/following`, {
+      following_username: targetUsername
+    });
+    return data;
+  },
+
+  unfollowUser: async (username, followingId) => {
+    const { data } = await api.delete(`user/${username}/following/${followingId}`);
+    return data;
+  },
+
+  checkFollowStatus: async (username, targetUsername) => {
+    const { data } = await api.get(`user/${username}/following/check/${targetUsername}`);
+    return data;
+  },
+
+  removeFollower: async (username, followerId) => {
+    const { data } = await api.delete(`user/${username}/follower/${followerId}`);
+    return data;
   }
 };

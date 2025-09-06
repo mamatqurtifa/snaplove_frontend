@@ -1,7 +1,7 @@
 "use client";
 import { useEffect } from "react";
 import Image from "next/image";
-import { FiImage, FiCamera, FiShare2, FiDownload, FiArrowRight } from "react-icons/fi";
+import { FiImage, FiCamera, FiShare2, FiArrowDown, FiPlay, FiCheck } from "react-icons/fi";
 
 const HowItWorks = () => {
   useEffect(() => {
@@ -27,140 +27,245 @@ const HowItWorks = () => {
 
   const steps = [
     {
-      icon: <FiImage className="h-8 w-8" />,
+      icon: <FiImage className="h-6 w-6" />,
       title: "Choose Your Frame",
       description: "Browse and select from hundreds of beautiful frames created by our community.",
-      color: "bg-[#FFE99A]",
       gradient: "from-[#FFE99A] via-[#FFD586] to-[#FFC947]",
-      iconColor: "text-gray-700",
+      shadowColor: "shadow-[#FFE99A]/30",
       delay: "delay-0",
-      image: "/images/placeholder.svg",
+      image: "/images/how-it-works/step-1.png",
       alt: "Choosing a frame",
-      number: "01"
+      number: "01",
+      accentColor: "#FFE99A"
     },
     {
-      icon: <FiCamera className="h-8 w-8" />,
+      icon: <FiCamera className="h-6 w-6" />,
       title: "Take a Photo",
       description: "Capture your perfect moment using our photobooth-style camera with real-time frame preview.",
-      color: "bg-[#C9A7FF]",
       gradient: "from-[#C9A7FF] via-[#B794F6] to-[#9F7AEA]",
-      iconColor: "text-gray-700",
+      shadowColor: "shadow-[#C9A7FF]/30",
       delay: "delay-200",
-      image: "/images/placeholder.svg",
+      image: "/images/how-it-works/step-2.png",
       alt: "Taking a photo",
-      number: "02"
+      number: "02",
+      accentColor: "#C9A7FF"
     },
     {
-      icon: <FiShare2 className="h-8 w-8" />,
+      icon: <FiShare2 className="h-6 w-6" />,
       title: "Share Your Best Pictures",
       description: "Download your framed photos and share your beautiful memories with friends and family.",
-      color: "bg-[#FF9898]",
       gradient: "from-[#FF9898] via-[#FFAAAA] to-[#FF7979]",
-      iconColor: "text-white",
+      shadowColor: "shadow-[#FF9898]/30",
       delay: "delay-400",
-      image: "/images/placeholder.svg",
+      image: "/images/how-it-works/step-3.png",
       alt: "Sharing pictures",
-      number: "03"
+      number: "03",
+      accentColor: "#FF9898"
     }
   ];
 
   return (
-    <section className="section-padding bg-gray-50 relative overflow-hidden">
-      {/* Decorative elements */}
-      <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-[#FFE99A]/30 rounded-full blur-3xl"></div>
-      <div className="absolute top-40 -right-20 w-72 h-72 bg-[#C9A7FF]/20 rounded-full blur-3xl"></div>
+    <section className="section-padding bg-gradient-to-br from-[#F5F7FA] via-white to-[#F8F9FF] relative overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute top-20 left-10 w-2 h-2 bg-[#FFE99A]/50 rounded-full animate-pulse"></div>
+      <div className="absolute top-40 right-20 w-3 h-3 bg-[#C9A7FF]/40 rounded-full animate-ping"></div>
+      <div className="absolute bottom-32 left-1/4 w-1 h-1 bg-[#FF9898]/60 rounded-full animate-bounce"></div>
+      <div className="absolute top-1/3 right-1/3 w-2 h-2 bg-[#A8EECC]/50 rounded-full animate-pulse" style={{animationDelay: '1s'}}></div>
+      
+      {/* Floating geometric shapes */}
+      <div className="absolute top-1/4 -left-8 w-16 h-16 border border-[#FFE99A]/20 rounded-2xl rotate-45 animate-spin" style={{animationDuration: '20s'}}></div>
+      <div className="absolute bottom-1/4 -right-8 w-12 h-12 border border-[#C9A7FF]/20 rounded-full animate-bounce" style={{animationDelay: '2s', animationDuration: '4s'}}></div>
       
       <div className="container-custom">
-        <div className="text-center max-w-3xl mx-auto mb-16 opacity-0 translate-y-10 transition-all duration-1000 animate-on-scroll">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">
-            How <span className="text-[#FF9898] relative z-10">
+        <div className="text-center max-w-4xl mx-auto mb-20 opacity-0 translate-y-10 transition-all duration-1000 animate-on-scroll">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 leading-tight">
+            How <span className="text-[#FF9898] relative">
               SnapLove
-              <svg className="absolute bottom-1 left-0 w-full -z-10" viewBox="0 0 100 15" preserveAspectRatio="none">
-                <path d="M0,5 Q50,15 100,5 V15 H0 Z" fill="rgba(255, 233, 154, 0.3)"/>
+              <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 200 20" preserveAspectRatio="none">
+                <path d="M0,8 Q100,18 200,8 V20 H0 Z" fill="#FFE99A" opacity="0.5" />
               </svg>
             </span> Works
           </h2>
-          <p className="text-gray-600 text-lg">
+          <p className="text-gray-600 text-lg md:text-xl leading-relaxed max-w-2xl mx-auto">
             Getting started with SnapLove is easy. Follow these simple steps to create and share beautiful framed photos.
           </p>
         </div>
 
-        <div className="relative">
-          {/* Enhanced Connection line with animated gradient */}
-          <div className="hidden md:block absolute top-1/2 left-1/4 right-1/4 h-2 transform -translate-y-1/2 z-0">
-            <div className="w-full h-full bg-gradient-to-r from-[#FFE99A] via-[#C9A7FF] to-[#FF9898] rounded-full relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-30 animate-pulse"></div>
-            </div>
+        {/* Desktop Layout */}
+        <div className="hidden lg:block relative">
+          {/* Flowing connection path */}
+          <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
+            <svg viewBox="0 0 1200 800" className="w-full h-full">
+              {/* Main flow path */}
+              <path 
+                d="M200,200 Q400,150 600,200 T1000,200" 
+                stroke="url(#gradient1)" 
+                strokeWidth="3" 
+                fill="none" 
+                strokeDasharray="10,5"
+                className="animate-pulse"
+              />
+              
+              {/* Branch paths for visual interest */}
+              <path 
+                d="M200,200 Q250,250 300,200" 
+                stroke="url(#gradient2)" 
+                strokeWidth="2" 
+                fill="none" 
+                opacity="0.5"
+              />
+              <path 
+                d="M600,200 Q650,150 700,200" 
+                stroke="url(#gradient3)" 
+                strokeWidth="2" 
+                fill="none" 
+                opacity="0.5"
+              />
+              
+              {/* Flowing dots */}
+              <circle r="4" fill="#FFE99A" className="animate-pulse">
+                <animateMotion dur="8s" repeatCount="indefinite">
+                  <mpath xlinkHref="#mainPath"/>
+                </animateMotion>
+              </circle>
+              <circle r="3" fill="#C9A7FF" className="animate-pulse">
+                <animateMotion dur="8s" begin="2s" repeatCount="indefinite">
+                  <mpath xlinkHref="#mainPath"/>
+                </animateMotion>
+              </circle>
+              <circle r="3" fill="#FF9898" className="animate-pulse">
+                <animateMotion dur="8s" begin="4s" repeatCount="indefinite">
+                  <mpath xlinkHref="#mainPath"/>
+                </animateMotion>
+              </circle>
+              
+              {/* Hidden path for animation */}
+              <path id="mainPath" d="M200,200 Q400,150 600,200 T1000,200" opacity="0"/>
+              
+              {/* Gradients */}
+              <defs>
+                <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#FFE99A" stopOpacity="0.6"/>
+                  <stop offset="50%" stopColor="#C9A7FF" stopOpacity="0.6"/>
+                  <stop offset="100%" stopColor="#FF9898" stopOpacity="0.6"/>
+                </linearGradient>
+                <linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#FFE99A" stopOpacity="0.4"/>
+                  <stop offset="100%" stopColor="#FFD586" stopOpacity="0.4"/>
+                </linearGradient>
+                <linearGradient id="gradient3" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#C9A7FF" stopOpacity="0.4"/>
+                  <stop offset="100%" stopColor="#FF9898" stopOpacity="0.4"/>
+                </linearGradient>
+              </defs>
+            </svg>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
+
+          <div className="grid grid-cols-3 gap-8 relative z-10">
             {steps.map((step, index) => (
               <div 
                 key={index}
-                className={`relative bg-white/80 backdrop-blur-sm rounded-3xl p-8 opacity-0 translate-y-10 transition-all duration-1000 ${step.delay} animate-on-scroll hover:shadow-2xl hover:-translate-y-4 group border border-white/50 overflow-hidden`}
+                className={`relative opacity-0 translate-y-10 transition-all duration-1000 ${step.delay} animate-on-scroll group`}
               >
-                {/* Animated background gradient */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${step.gradient} opacity-0 group-hover:opacity-10 transition-all duration-500 rounded-3xl`}></div>
-                
-                {/* Decorative corner elements */}
-                <div className="absolute top-4 left-4 w-8 h-8 opacity-20">
-                  <div className={`w-2 h-2 bg-gradient-to-r ${step.gradient} rounded-full animate-ping`}></div>
-                  <div className={`w-1 h-1 bg-gradient-to-r ${step.gradient} rounded-full absolute top-1 left-1`}></div>
-                </div>
+                {/* Step connector */}
+                {index < steps.length - 1 && (
+                  <div className="absolute top-1/2 -right-4 transform -translate-y-1/2 z-20">
+                    <div className={`w-8 h-8 bg-gradient-to-r ${step.gradient} rounded-full flex items-center justify-center shadow-lg ${step.shadowColor} group-hover:scale-125 transition-all duration-300 rotate-180`}>
+                      <FiArrowDown className="h-4 w-4 text-white transform rotate-90" />
+                    </div>
+                  </div>
+                )}
 
-                <div className="flex flex-col items-center text-center relative z-10">
-                  {/* Enhanced image container with better effects */}
-                  <div className="mb-8 overflow-hidden rounded-2xl w-full h-48 relative group-hover:scale-105 transition-transform duration-500 shadow-lg">
+                {/* Main card */}
+                <div className="relative bg-white/90 backdrop-blur-sm rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-700 hover:-translate-y-4 border border-white/60 group">
+                  {/* Animated background */}
+                  <div className={`absolute inset-0 bg-gradient-to-br ${step.gradient} opacity-0 group-hover:opacity-10 transition-all duration-500`}></div>
+
+                  {/* Image section */}
+                  <div className="relative h-48 overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent z-10"></div>
                     <Image
                       src={step.image}
                       alt={step.alt}
-                      width={300}
+                      width={400}
                       height={200}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                     />
-                    {/* Overlay with gradient on hover */}
-                    <div className={`absolute inset-0 bg-gradient-to-t ${step.gradient} opacity-0 group-hover:opacity-20 transition-opacity duration-500`}></div>
-                  </div>
-
-                  {/* Enhanced icon with multiple animation layers */}
-                  <div className={`relative bg-gradient-to-br ${step.gradient} w-20 h-20 rounded-2xl flex items-center justify-center mb-6 ${step.iconColor} group-hover:scale-110 group-hover:rotate-12 transition-all duration-500 shadow-xl`}>
-                    {step.icon}
-                    {/* Animated ring around icon */}
-                    <div className="absolute inset-0 rounded-2xl border-2 border-white opacity-0 group-hover:opacity-50 scale-110 group-hover:scale-125 transition-all duration-500"></div>
-                    {/* Pulse effect */}
-                    <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${step.gradient} opacity-0 group-hover:opacity-30 animate-ping`}></div>
-                  </div>
-
-                  {/* Enhanced title with gradient text effect */}
-                  <h3 className={`text-xl font-bold mb-4 transition-all duration-300 group-hover:bg-gradient-to-r group-hover:${step.gradient} group-hover:bg-clip-text group-hover:text-transparent group-hover:scale-105`}>
-                    {step.title}
-                  </h3>
-
-                  {/* Enhanced description */}
-                  <p className="text-gray-600 leading-relaxed group-hover:text-gray-700 transition-colors duration-300">
-                    {step.description}
-                  </p>
-
-                  {/* Enhanced bottom elements */}
-                  {index === steps.length - 1 ? (
-                    <button className={`mt-8 bg-gradient-to-r ${step.gradient} text-white font-semibold py-3 px-6 rounded-2xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-2 w-full group-hover:scale-105`}>
-                      Try Now
-                      <FiArrowRight className="group-hover:translate-x-2 transition-transform duration-300" />
-                    </button>
-                  ) : (
-                    <div className="mt-8 h-12 flex items-center justify-center">
-                      <div className={`w-12 h-12 bg-gradient-to-r ${step.gradient} rounded-full flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300`}>
-                        <FiArrowRight className="h-5 w-5 text-gray-700 md:rotate-0 rotate-90 group-hover:scale-110 transition-transform duration-300" />
+                    
+                    {/* Floating play button */}
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                      <div className={`w-12 h-12 bg-gradient-to-r ${step.gradient} rounded-full flex items-center justify-center shadow-lg backdrop-blur-sm`}>
+                        <FiPlay className="h-5 w-5 text-white ml-1" />
                       </div>
                     </div>
-                  )}
+                  </div>
 
-                  {/* Decorative bottom bar with animation */}
-                  <div className={`w-16 h-1 bg-gradient-to-r ${step.gradient} rounded-full mx-auto mt-4 group-hover:w-24 transition-all duration-500 shadow-sm`}></div>
+                  {/* Content section */}
+                  <div className="p-6 relative z-10">
+                    {/* Icon */}
+                    <div className={`inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br ${step.gradient} rounded-2xl mb-4 shadow-md group-hover:scale-110 group-hover:rotate-6 transition-all duration-500`}>
+                      {step.icon}
+                    </div>
+
+                    {/* Title */}
+                    <h3 className="text-xl font-bold mb-3 text-gray-800 group-hover:text-gray-900">
+                      {step.title}
+                    </h3>
+
+                    {/* Description */}
+                    <p className="text-gray-600 text-sm leading-relaxed group-hover:text-gray-700">
+                      {step.description}
+                    </p>
+
+                    {/* Action indicator */}
+                    <div className="mt-4 flex items-center gap-2">
+                      <div className={`w-2 h-2 bg-gradient-to-r ${step.gradient} rounded-full animate-ping`}></div>
+                      <span className="text-xs text-gray-500 font-medium">Step {step.number}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
+        </div>
+
+        {/* Mobile Layout */}
+        <div className="lg:hidden space-y-6">
+          {steps.map((step, index) => (
+            <div key={index} className={`relative opacity-0 translate-y-10 transition-all duration-1000 ${step.delay} animate-on-scroll`}>
+              {/* Connector line for mobile */}
+              {index < steps.length - 1 && (
+                <div className="absolute left-6 bottom-0 w-0.5 h-6 bg-gradient-to-b from-gray-300 to-transparent z-0 transform translate-y-full"></div>
+              )}
+              
+              <div className="flex items-start gap-4 relative z-10">
+                {/* Step indicator circle */}
+                <div className={`flex-shrink-0 w-12 h-12 bg-gradient-to-br ${step.gradient} rounded-full flex items-center justify-center shadow-lg`}>
+                  {step.icon}
+                </div>
+
+                {/* Content card */}
+                <div className="flex-1 bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/60">
+                  {/* Title and description */}
+                  <h3 className="text-lg font-bold mb-2 text-gray-800">{step.title}</h3>
+                  <p className="text-gray-600 text-sm leading-relaxed">{step.description}</p>
+                  
+                  {/* Simple progress indicator */}
+                  <div className="mt-4">
+                    <div className={`w-16 h-1 bg-gradient-to-r ${step.gradient} rounded-full`}></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Call to action */}
+        <div className="text-center mt-16 opacity-0 translate-y-10 transition-all duration-1000 delay-600 animate-on-scroll">
+          <button className="bg-gradient-to-r from-[#FF9898] via-[#FFAAAA] to-[#FF7979] hover:from-[#FF7979] hover:to-[#FF9898] text-white font-semibold py-4 px-12 rounded-full shadow-lg shadow-[#FF9898]/30 hover:shadow-xl hover:shadow-[#FF9898]/40 hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-3 mx-auto">
+            <FiPlay className="h-5 w-5" />
+            Start Creating Now
+          </button>
         </div>
       </div>
     </section>

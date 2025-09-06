@@ -1,18 +1,21 @@
+// /src/app/official-admin-snaplove/reports/[id]/page.js
+
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { FaArrowLeft, FaCheck, FaTimes, FaExclamationTriangle, FaUser, FaImage, FaClock, FaFlag } from 'react-icons/fa';
+import { FaArrowLeft, FaCheck, FaTimes, FaExclamationTriangle, FaUser, FaImage, FaClock, FaFlag, FaTrash } from 'react-icons/fa';
 
 export default function ReportDetailPage({ params }) {
   const router = useRouter();
-  const { id } = params;
+  const { id } = use(params); // Use React.use() to unwrap params
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
-  const [adminNote, setAdminNote] = useState('');
+  const [adminResponse, setAdminResponse] = useState('');
   const [success, setSuccess] = useState('');
+  const [selectedAction, setSelectedAction] = useState('no_action');
   
   useEffect(() => {
     const fetchReportDetails = async () => {
@@ -36,8 +39,8 @@ export default function ReportDetailPage({ params }) {
         }
         
         const data = await response.json();
-        setReport(data.data.report);
-        setAdminNote(data.data.report.admin_note || '');
+        setReport(data.data.report || data.data);
+        setAdminResponse(data.data.report?.admin_response || data.data?.admin_response || '');
       } catch (err) {
         console.error('Error fetching report details:', err);
         setError(err.message);
@@ -46,10 +49,12 @@ export default function ReportDetailPage({ params }) {
       }
     };
     
-    fetchReportDetails();
+    if (id) {
+      fetchReportDetails();
+    }
   }, [id]);
   
-  const handleActionSubmit = async (action) => {
+  const handleActionSubmit = async (status) => {
     try {
       setSubmitting(true);
       setSuccess('');
@@ -60,16 +65,23 @@ export default function ReportDetailPage({ params }) {
         throw new Error('Not authenticated');
       }
       
+      const requestBody = {
+        report_status: status,
+        admin_response: adminResponse
+      };
+      
+      // Only add action if status is 'done' and action is selected
+      if (status === 'done') {
+        requestBody.action = selectedAction;
+      }
+      
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/reports/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({
-          status: action,
-          admin_note: adminNote
-        })
+        body: JSON.stringify(requestBody)
       });
       
       if (!response.ok) {
@@ -77,8 +89,16 @@ export default function ReportDetailPage({ params }) {
       }
       
       const data = await response.json();
-      setReport(data.data.report);
-      setSuccess(`Report has been ${action === 'resolved' ? 'resolved' : 'rejected'} successfully`);
+      setReport(data.data.report || data.data);
+      
+      let actionText = '';
+      if (status === 'done') {
+        actionText = selectedAction === 'delete_frame' ? 'resolved and content deleted' : 'resolved with no action';
+      } else {
+        actionText = 'rejected';
+      }
+      
+      setSuccess(`Report has been ${actionText} successfully`);
       
       // Refresh the data after action
       setTimeout(() => {
@@ -86,7 +106,7 @@ export default function ReportDetailPage({ params }) {
       }, 2000);
       
     } catch (err) {
-      console.error(`Error ${action} report:`, err);
+      console.error(`Error updating report:`, err);
       setError(err.message);
     } finally {
       setSubmitting(false);
@@ -96,20 +116,18 @@ export default function ReportDetailPage({ params }) {
   const getStatusColor = (status) => {
     switch(status) {
       case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'resolved': return 'bg-green-100 text-green-800';
+      case 'done': return 'bg-green-100 text-green-800';
       case 'rejected': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
   
-  const getTypeColor = (type) => {
-    switch(type) {
-      case 'inappropriate_content': return 'bg-red-100 text-red-800';
-      case 'spam': return 'bg-orange-100 text-orange-800';
-      case 'harassment': return 'bg-purple-100 text-purple-800';
-      case 'copyright': return 'bg-blue-100 text-blue-800';
-      case 'other': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
+  const getStatusText = (status) => {
+    switch(status) {
+      case 'done': return 'Done';
+      case 'pending': return 'Pending';
+      case 'rejected': return 'Rejected';
+      default: return status;
     }
   };
   
@@ -162,79 +180,119 @@ export default function ReportDetailPage({ params }) {
         </div>
       )}
       
+      {error && (
+        <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-md">
+          <p className="font-bold">Error:</p>
+          <p>{error}</p>
+        </div>
+      )}
+      
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Report Information */}
         <div className="lg:col-span-2">
           <div className="bg-white p-6 rounded-lg shadow-md mb-6">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold">Report Information</h2>
-              <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(report.status)}`}>
-                {report.status}
+              <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(report.report_status)}`}>
+                {getStatusText(report.report_status)}
               </span>
             </div>
             
             <div className="mb-4">
-              <div className="text-sm text-gray-500 mb-1">Report Type</div>
-              <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getTypeColor(report.type)}`}>
-                {report.type.replace(/_/g, ' ')}
-              </span>
+              <div className="text-sm text-gray-500 mb-1">Report Title</div>
+              <p className="text-gray-900 font-medium">{report.title || 'Untitled Report'}</p>
             </div>
             
             <div className="mb-4">
-              <div className="text-sm text-gray-500 mb-1">Report Reason</div>
-              <p className="text-gray-700 whitespace-pre-line">{report.reason}</p>
+              <div className="text-sm text-gray-500 mb-1">Report Description</div>
+              <p className="text-gray-700 whitespace-pre-line">{report.description || 'No description provided'}</p>
             </div>
             
             <div className="mb-4">
-              <div className="text-sm text-gray-500 mb-1">Reported Content</div>
+              <div className="text-sm text-gray-500 mb-1">Reported Frame</div>
               <div className="flex items-start mt-2">
                 <div className="flex-shrink-0 w-24 h-24 mr-4">
                   <img 
-                    src={report.content_thumbnail || "https://via.placeholder.com/100"} 
-                    alt="Content" 
+                    src={report.frame?.images?.[0] || "https://via.placeholder.com/100"} 
+                    alt="Frame" 
                     className="w-full h-full object-cover rounded-md"
                   />
                 </div>
                 <div>
-                  <h3 className="text-lg font-medium">{report.content_title}</h3>
+                  <h3 className="text-lg font-medium">{report.frame?.title || 'Unknown Frame'}</h3>
                   <p className="text-sm text-gray-500">
-                    {report.content_type} by @{report.content_owner}
+                    Layout: {report.frame?.layout_type || 'Unknown'} | Visibility: {report.frame?.visibility || 'Unknown'}
                   </p>
-                  <a 
-                    href={report.content_url} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="mt-2 inline-block text-blue-600 hover:underline"
-                  >
-                    View Content
-                  </a>
+                  <p className="text-sm text-gray-500">
+                    Owner: @{report.frame?.owner?.username || 'unknown'} ({report.frame?.owner?.name || 'Unknown'})
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Frame ID: {report.frame?.id || 'Unknown'}
+                  </p>
                 </div>
               </div>
             </div>
             
-            {report.status !== 'pending' && (
+            {report.report_status !== 'pending' && (
               <div className="mb-4">
-                <div className="text-sm text-gray-500 mb-1">Admin Note</div>
-                <p className="text-gray-700 whitespace-pre-line">{report.admin_note || 'No notes provided'}</p>
+                <div className="text-sm text-gray-500 mb-1">Admin Response</div>
+                <p className="text-gray-700 whitespace-pre-line">{report.admin_response || 'No response provided'}</p>
               </div>
             )}
           </div>
           
-          {report.status === 'pending' && (
+          {report.report_status === 'pending' && (
             <div className="bg-white p-6 rounded-lg shadow-md">
               <h2 className="text-xl font-semibold mb-4">Take Action</h2>
               
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Admin Note
+                  Admin Response
                 </label>
                 <textarea
-                  value={adminNote}
-                  onChange={(e) => setAdminNote(e.target.value)}
+                  value={adminResponse}
+                  onChange={(e) => setAdminResponse(e.target.value)}
                   className="w-full p-2 border rounded-md"
                   rows={4}
-                  placeholder="Add notes about your decision (optional)"
+                  placeholder="Add your response about this report (optional)"
                 ></textarea>
+              </div>
+              
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Action to Take (if resolving)
+                </label>
+                <div className="space-y-2">
+                  <div className="flex items-center">
+                    <input
+                      type="radio"
+                      id="no_action"
+                      name="action"
+                      value="no_action"
+                      checked={selectedAction === 'no_action'}
+                      onChange={(e) => setSelectedAction(e.target.value)}
+                      className="mr-2"
+                    />
+                    <label htmlFor="no_action" className="text-sm text-gray-700">
+                      No action needed - Report is invalid or content is acceptable
+                    </label>
+                  </div>
+                  <div className="flex items-center">
+                    <input
+                      type="radio"
+                      id="delete_frame"
+                      name="action"
+                      value="delete_frame"
+                      checked={selectedAction === 'delete_frame'}
+                      onChange={(e) => setSelectedAction(e.target.value)}
+                      className="mr-2"
+                    />
+                    <label htmlFor="delete_frame" className="text-sm text-gray-700 flex items-center">
+                      <FaTrash className="mr-1 text-red-500" />
+                      Delete frame - Report is valid and frame violates policies
+                    </label>
+                  </div>
+                </div>
               </div>
               
               <div className="flex justify-end space-x-4">
@@ -247,20 +305,23 @@ export default function ReportDetailPage({ params }) {
                   Reject Report
                 </button>
                 <button
-                  onClick={() => handleActionSubmit('resolved')}
+                  onClick={() => handleActionSubmit('done')}
                   className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center"
                   disabled={submitting}
                 >
                   <FaCheck className="mr-2" />
-                  Resolve Report
+                  {selectedAction === 'delete_frame' ? 'Resolve & Delete Frame' : 'Resolve Report'}
                 </button>
               </div>
               
               <div className="mt-4 text-sm text-gray-500">
                 <FaExclamationTriangle className="inline-block mr-1 text-yellow-500" />
                 <span>
-                  Resolving the report will flag the content for review and potential removal. 
-                  Rejecting means no action will be taken on the reported content.
+                  {selectedAction === 'delete_frame' 
+                    ? 'Resolving with delete action will remove the reported frame permanently.'
+                    : 'Resolving with no action means the report is handled but frame remains.'
+                  }
+                  {' '}Rejecting means the report is invalid and no action is needed.
                 </span>
               </div>
             </div>
@@ -273,25 +334,30 @@ export default function ReportDetailPage({ params }) {
             <h3 className="text-lg font-semibold mb-4">Reporter Information</h3>
             <div className="flex items-center mb-4">
               <img 
-                src={report.reporter_image || "https://via.placeholder.com/50"} 
-                alt={report.reporter_name} 
+                src={report.reporter?.image_profile || "https://via.placeholder.com/50"} 
+                alt={report.reporter?.name || 'Reporter'} 
                 className="w-12 h-12 rounded-full object-cover mr-4"
               />
               <div>
-                <h4 className="font-medium">{report.reporter_name}</h4>
-                <p className="text-sm text-gray-500">@{report.reporter_username}</p>
+                <h4 className="font-medium">{report.reporter?.name || 'Unknown Reporter'}</h4>
+                <p className="text-sm text-gray-500">@{report.reporter?.username || 'unknown'}</p>
               </div>
             </div>
             
             <div className="space-y-3">
               <div className="flex items-center text-gray-600">
                 <FaUser className="mr-3" />
-                <span>Role: <span className="font-medium">{report.reporter_role}</span></span>
+                <span>Role: <span className="font-medium">{report.reporter?.role || 'Unknown'}</span></span>
               </div>
               
               <div className="flex items-center text-gray-600">
                 <FaFlag className="mr-3" />
-                <span>Previous Reports: <span className="font-medium">{report.reporter_report_count}</span></span>
+                <span>Email: <span className="font-medium">{report.reporter?.email || 'Unknown'}</span></span>
+              </div>
+              
+              <div className="flex items-center text-gray-600">
+                <FaUser className="mr-3" />
+                <span>Reporter ID: <span className="font-medium text-xs">{report.reporter?.id || 'Unknown'}</span></span>
               </div>
             </div>
           </div>
@@ -301,33 +367,35 @@ export default function ReportDetailPage({ params }) {
             <div className="space-y-3">
               <div className="flex items-center text-gray-600">
                 <FaFlag className="mr-3" />
-                <span>Report ID: <span className="font-medium">{report.id}</span></span>
+                <span>Report ID: <span className="font-medium text-xs">{report.id || 'N/A'}</span></span>
               </div>
               
               <div className="flex items-center text-gray-600">
                 <FaClock className="mr-3" />
-                <span>Created: <span className="font-medium">{new Date(report.created_at).toLocaleString()}</span></span>
+                <span>Created: <span className="font-medium">
+                  {report.created_at ? new Date(report.created_at).toLocaleString() : 'Unknown'}
+                </span></span>
               </div>
               
-              {report.updated_at && (
+              {report.updated_at && report.updated_at !== report.created_at && (
                 <div className="flex items-center text-gray-600">
                   <FaClock className="mr-3" />
                   <span>Last Updated: <span className="font-medium">{new Date(report.updated_at).toLocaleString()}</span></span>
                 </div>
               )}
               
-              {report.handled_by && (
+              {report.admin && (
                 <div className="mt-4 pt-4 border-t">
                   <h4 className="font-medium mb-2">Handled By</h4>
                   <div className="flex items-center">
                     <div className="mr-3">
                       <span className="inline-block w-8 h-8 rounded-full bg-blue-100 text-blue-600 text-center leading-8">
-                        {report.handled_by_name.charAt(0)}
+                        {(report.admin.name || 'U').charAt(0)}
                       </span>
                     </div>
                     <div>
-                      <div className="font-medium">{report.handled_by_name}</div>
-                      <div className="text-sm text-gray-500">@{report.handled_by}</div>
+                      <div className="font-medium">{report.admin.name || 'Unknown'}</div>
+                      <div className="text-sm text-gray-500">@{report.admin.username || 'unknown'}</div>
                     </div>
                   </div>
                 </div>

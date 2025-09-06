@@ -26,17 +26,18 @@ const UploadFrameCTA = () => {
   }, []);
   
   return (
-    <section className="section-padding bg-gradient-to-br from-[#FFF8F8] to-white relative overflow-hidden">
-      {/* Decorative elements */}
-      <div className="absolute top-20 left-0 w-64 h-64 bg-[#FFE99A]/30 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-20 right-0 w-72 h-72 bg-[#C9A7FF]/20 rounded-full blur-3xl"></div>
+    <section className="section-padding bg-gradient-to-br from-[#F8F9FF] to-[#FFF8F8] relative overflow-hidden">
+      {/* Decorative elements - lower z-index */}
+      <div className="absolute top-20 left-0 w-64 h-64 bg-[#FFE99A]/30 rounded-full blur-3xl -z-10"></div>
+      <div className="absolute bottom-20 right-0 w-72 h-72 bg-[#C9A7FF]/20 rounded-full blur-3xl -z-10"></div>
       
-      <div className="container-custom">
+      <div className="container-custom relative z-10">
         <div className="glass-effect relative">
-          <div className="absolute -top-10 -left-10 w-20 h-20 bg-[#FFE99A] rounded-full opacity-70 floating"></div>
-          <div className="absolute -bottom-8 -right-8 w-16 h-16 bg-[#FF9898] rounded-full opacity-70 pulsing"></div>
+          {/* Background decorative elements - behind content */}
+          <div className="absolute -top-10 -left-10 w-20 h-20 bg-[#FFE99A] rounded-full opacity-70 floating -z-10"></div>
+          <div className="absolute -bottom-8 -right-8 w-16 h-16 bg-[#FF9898] rounded-full opacity-70 pulsing -z-10"></div>
           
-          <div className="flex flex-col md:flex-row items-center p-8 md:p-12 gap-8 relative z-10">
+          <div className="flex flex-col md:flex-row items-center p-8 md:p-12 gap-8 relative z-20">
             <div className="w-full md:w-1/2 opacity-0 translate-y-10 transition-all duration-1000 animate-on-scroll">
               <h2 className="text-3xl md:text-4xl font-bold mb-6">
                 Become a <span className="text-[#FF9898]">Frame Creator</span> Today
@@ -98,23 +99,25 @@ const UploadFrameCTA = () => {
             </div>
             
             <div className="w-full md:w-1/2 opacity-0 translate-y-10 transition-all duration-1000 delay-300 animate-on-scroll">
-              <div className="relative">
-                <div className="relative z-20 floating">
+              <div className="relative min-h-[400px]">
+                {/* Main illustration with proper z-index */}
+                <div className="relative z-30 floating">
                   <Image
                     src="/images/frame-creator-illustration.png"
                     alt="Frame creator illustration"
                     width={500}
                     height={400}
-                    className="rounded-3xl"
+                    className="rounded-3xl w-full h-auto"
                   />
                 </div>
                 
-                <div className="absolute top-1/2 right-0 transform translate-x-1/4 -translate-y-1/4 z-10 wobbling">
-                  <div className="bg-white p-4 rounded-xl shadow-lg">
+                {/* Floating cards with higher z-index to appear above the image */}
+                <div className="absolute top-4 -right-4 transform z-40 wobbling">
+                  <div className="bg-white p-4 rounded-xl shadow-lg border border-gray-100">
                     <div className="flex items-center gap-2 mb-2">
-                      <div className="w-8 h-8 rounded-full overflow-hidden">
+                      <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200">
                         <Image
-                          src="/images/avatars/avatar-2.jpg"
+                          src="/images/avatars/avatar-7.jpg"
                           alt="Creator avatar"
                           width={32}
                           height={32}
@@ -134,8 +137,8 @@ const UploadFrameCTA = () => {
                   </div>
                 </div>
                 
-                <div className="absolute bottom-0 left-0 transform -translate-x-1/4 translate-y-1/4 z-10 floating delay-500">
-                  <div className="bg-white p-4 rounded-xl shadow-lg">
+                <div className="absolute -bottom-4 -left-4 transform z-40 floating" style={{animationDelay: '0.5s'}}>
+                  <div className="bg-white p-4 rounded-xl shadow-lg border border-gray-100">
                     <p className="text-sm font-bold mb-1">Top Creator Award 🏆</p>
                     <p className="text-xs text-gray-600">Congratulations!</p>
                   </div>
